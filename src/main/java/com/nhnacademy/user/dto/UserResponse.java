@@ -18,7 +18,4 @@ public class UserResponse {
 
     @JsonProperty("userEmail")
     String userEmail;
-
-    @JsonProperty("userPassword")
-    String userPassword;
 }

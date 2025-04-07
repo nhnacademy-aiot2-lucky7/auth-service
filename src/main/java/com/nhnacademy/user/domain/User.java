@@ -1,7 +1,11 @@
 package com.nhnacademy.user.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.Comment;
+
+import java.beans.beancontext.BeanContextServiceProviderBeanInfo;
+import java.security.Provider;
 
 @Entity
 @Table(name = "users")
@@ -12,6 +16,13 @@ public class User {
     @Column(name = "user_no")
     @Comment("사용자-번호")
     private Long userNo;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ProviderInfo providerInfo;
+
+    @NotNull
+    private String identifier;
 
     @Column(name = "user_name", nullable = false, length = 50)
     @Comment("사용자-이름")

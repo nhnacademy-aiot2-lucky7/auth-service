@@ -1,4 +1,4 @@
-package com.nhnacademy.authservice_;
+package com.nhnacademy;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
