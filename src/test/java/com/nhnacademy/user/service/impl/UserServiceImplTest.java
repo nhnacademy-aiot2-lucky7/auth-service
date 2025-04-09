@@ -21,10 +21,7 @@ class UserServiceImplTest {
     @Test
     void registerUser() {
         RegisterUserRequest registerUserRequest = new RegisterUserRequest(
-                "user",
-                "user@email.com",
-                "userPassword",
-                "userPassword"
+
         );
     }
 
