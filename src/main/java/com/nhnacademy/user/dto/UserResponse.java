@@ -1,14 +1,15 @@
 package com.nhnacademy.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
+import com.nhnacademy.user.domain.User;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
-@EqualsAndHashCode
+@Getter
+@NoArgsConstructor
 public class UserResponse {
+
+    @JsonProperty("userRole")
+    User.Role userRole;
 
     @JsonProperty("userNo")
     Long userNo;
@@ -18,4 +19,11 @@ public class UserResponse {
 
     @JsonProperty("userEmail")
     String userEmail;
+
+    public UserResponse(User.Role userRole, Long userNo, String userName, String userEmail){
+        this.userRole = userRole;
+        this.userNo = userNo;
+        this.userName = userName;
+        this.userEmail = userEmail;
+    }
 }

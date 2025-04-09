@@ -7,15 +7,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
-@ActiveProfiles("test")
 @DataJpaTest
 class UserRepositoryTest {
 
     @Autowired
-    EntityManager entityManager;
+    TestEntityManager testEntityManager;
 
     @Test
     void existsByUserEmail() {
@@ -25,9 +25,9 @@ class UserRepositoryTest {
                 "user@email.com",
                 "userPassword"
         );
-        entityManager.persist(user);
+        testEntityManager.persist(user);
 
-        User dbUser = entityManager.find(User.class, user.getUserNo());
+        User dbUser = testEntityManager.find(User.class, user.getUserNo());
 
         Assertions.assertNotNull(dbUser);
 

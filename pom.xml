@@ -79,6 +79,20 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- querydsl -->
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-jpa</artifactId>
+            <version>5.1.0</version>
+            <classifier>jakarta</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-apt</artifactId>
+            <version>5.1.0</version>
+            <classifier>jakarta</classifier>
+        </dependency>
+
     </dependencies>
 
     <build>
