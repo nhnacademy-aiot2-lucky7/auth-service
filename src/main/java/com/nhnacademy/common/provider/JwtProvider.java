@@ -18,7 +18,7 @@ public class JwtProvider {
     // RefreshToken 유효시간 = 일주일
     private final long refreshTokenValidity = 7 * 24 * 60  * 60 * 1000L;
 
-    public JwtProvider(@Value("jwt.secret")String secretKey) {
+    public JwtProvider(@Value("${jwt.secret}")String secretKey) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
