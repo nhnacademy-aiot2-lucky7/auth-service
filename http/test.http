@@ -1,12 +1,11 @@
 ### user 등록
-POST http://localhost:8080/users
+POST http://localhost:8080/users/register
 Content-Type: application/json
 
 {
   "userName": "test1",
   "userEmail": "test@email.com",
-  "userPassword": "test123???",
-  "userPasswordConfirm": "test123???"
+  "userPassword": "test123???"
 }
 
 ### user 조회
