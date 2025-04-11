@@ -61,7 +61,17 @@ public class JwtProvider {
                 .get("user_id", String.class);
     }
 
-    // 테스트
+    public String getExpiredAtFromToken(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(key) //보안상 byte 배열로 권장
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("expired_at", String.class);
+    }
+
+/*    // 테스트
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -69,5 +79,5 @@ public class JwtProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
+    }*/
 }
