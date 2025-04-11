@@ -44,16 +44,16 @@ public class UserController {
     /**
      * 사용자 번호를 기반으로 사용자 정보를 조회합니다.
      *
-     * @param userEmail 암호화된 사용자 정보
+     * @param encryptedUserEmail 암호화된 사용자 정보
      * @return 사용자 정보 응답 (HTTP 200 OK)
      */
     @GetMapping(value = "/me")
-    public ResponseEntity<UserResponse> getAction(@RequestHeader("X-User-Agent") String userEmail){
+    public ResponseEntity<UserResponse> getAction(@RequestHeader("X-USER-ID") String encryptedUserEmail){
 
         // 복호화하는 과정 들어가야함
 
-        UserResponse userResponse = userService.getUser(userEmail);
-        log.info("create response:{}", userResponse);
+        UserResponse userResponse = userService.getUser(encryptedUserEmail);
+        log.info("getAction response:{}", userResponse);
         return ResponseEntity.ok(userResponse);
     }
 
