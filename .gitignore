@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### local 설정 무시
+**/application-local.properties
+
 ### STS ###
 .apt_generated
 .classpath
