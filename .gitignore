@@ -4,8 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### local 설정 무시
-**/application-local.properties
+### .env 무시
+.env
 
 ### STS ###
 .apt_generated
