@@ -21,13 +21,13 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_no")
+    @Column(name = "user_no", nullable = false, unique = true, updatable = false)
     @Comment("사용자-번호")
     private Long userNo;
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_role")
+    @Column(name = "user_role", nullable = false, updatable = false)
     @Comment("사용자-역할")
     private Role userRole;
 
@@ -43,11 +43,6 @@ public class User {
     @Column(name = "user_password", nullable = false, length = 45)
     @Comment("사용자-비밀번호")
     private String userPassword;
-
-
-    @Column(name = "user_token", unique = true)
-    @Comment("refresh-token")
-    private String refreshToken;
 
     @Column(nullable = false, updatable = false)
     @Comment("가입일자")

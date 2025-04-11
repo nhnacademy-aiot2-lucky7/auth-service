@@ -1,21 +1,18 @@
 package com.nhnacademy.common.provider;
 
-import com.nhnacademy.user.domain.User;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
+@ActiveProfiles("test")
 class JwtProviderTest {
 
     private JwtProvider jwtProvider;

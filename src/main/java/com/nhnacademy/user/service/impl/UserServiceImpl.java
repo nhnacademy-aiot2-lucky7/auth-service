@@ -12,11 +12,13 @@ import com.nhnacademy.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -51,23 +53,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUser(Long userNo) {
 
-        Optional<User> userOptional = userRepository.findById(userNo);
-
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            return userRepository.findUserResponseByUserNo(user.getUserNo()).get();
-        }
-        throw new CommonHttpException(404, "USER NOT FOUND");
+        log.debug("회원조회 시작! 회원 번호 : {}", userNo);
+        return userRepository.findUserResponseByUserNo(userNo)
+                .orElseThrow(() -> new NotFoundException("해당 userNo에 해당하는 유저를 찾을 수 없습니다."));
     }
 
     @Override
     public UserResponse loginUser(UserLoginRequest userLoginRequest) {
 
-        return userRepository.findUserResponseByUserEmail(userLoginRequest.getUserEmail()).get();
+        log.debug("로그인 시작! 회원 이메일: {}", userLoginRequest.getUserEmail());
+        return userRepository.findUserResponseByUserEmail(userLoginRequest.getUserEmail())
+                .orElseThrow(() -> new NotFoundException("해당 userEmail에 해당하는 유저를 찾을 수 없습니다."));
     }
 
     @Override
     public void removeUser(long userNo) {
 
+        log.debug("회원삭제 시작! 회원 번호: {}", userNo);
     }
 }

@@ -19,8 +19,8 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<UserResponse> createAction(@RequestBody @Validated UserRegisterRequest userRegisterRequest){
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> createAction(@Validated @RequestBody UserRegisterRequest userRegisterRequest){
         UserResponse userResponse = userService.createUser(userRegisterRequest);
 
         log.info("create response:{}", userResponse);
@@ -38,8 +38,8 @@ public class UserController {
                 .ok(userResponse);
     }
 
-    @PostMapping(value = {"/login"})
-    public ResponseEntity<UserResponse> loginAction(@RequestBody @Validated UserLoginRequest userLoginRequest){
+    @PostMapping("/login")
+    public ResponseEntity<UserResponse> loginAction(@Validated @RequestBody UserLoginRequest userLoginRequest){
         UserResponse userResponse = userService.loginUser(userLoginRequest);
 
         log.info("login response:{}", userResponse);
