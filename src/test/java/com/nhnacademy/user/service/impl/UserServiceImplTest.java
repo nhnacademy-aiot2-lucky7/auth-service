@@ -91,11 +91,11 @@ class UserServiceImplTest {
         UserResponse fakeResponse = new UserResponse(
                 User.Role.USER, 1l, "user1", "user1@email.com"
         );
-        Mockito.when(userRepository.findUserResponseByUserNo(Mockito.anyLong())).thenReturn(Optional.of(fakeResponse));
+        Mockito.when(userRepository.findUserResponseByUserEmail(Mockito.anyString())).thenReturn(Optional.of(fakeResponse));
 
-        UserResponse userResponse = userService.getUser(1l);
+        UserResponse userResponse = userService.getUser("user1@email.com");
 
-        Mockito.verify(userRepository, Mockito.times(1)).findUserResponseByUserNo(Mockito.anyLong());
+        Mockito.verify(userRepository, Mockito.times(1)).findUserResponseByUserEmail(Mockito.anyString());
         Assertions.assertAll(
                 () -> {
                     Assertions.assertNotNull(userResponse.getUserNo());
@@ -117,10 +117,10 @@ class UserServiceImplTest {
 
         // 존재하지 않는 userNo 호출시 에러 발생
         Assertions.assertThrows(NotFoundException.class, () -> {
-            userService.getUser(999L);
+            userService.getUser("wrong@email.com");
         });
 
-        Mockito.verify(userRepository, Mockito.times(1)).findUserResponseByUserNo(Mockito.anyLong());
+        Mockito.verify(userRepository, Mockito.times(1)).findUserResponseByUserEmail(Mockito.anyString());
     }
 
     @Test
@@ -149,11 +149,6 @@ class UserServiceImplTest {
         );
     }
 
-    /**
-     * 이메일이 틀렸을 때
-     * 비밀번호가 틀렸을 때
-     * case 나누어서 만들기
-     */
     @Test
     @Comment("로그인_실패")
     void loginUser_fail() {

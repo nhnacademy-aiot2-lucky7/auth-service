@@ -8,6 +8,9 @@ package com.nhnacademy.common.exception;
  */
 public class NotFoundException extends CommonHttpException {
 
+  /**
+   * HTTP 상태 코드 404 (Not Found)
+   */
   private static final int STATUS_CODE = 404;
 
   /**

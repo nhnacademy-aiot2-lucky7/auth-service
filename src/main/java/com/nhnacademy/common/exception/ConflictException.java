@@ -1,12 +1,16 @@
 package com.nhnacademy.common.exception;
 
 /**
- * 리소스와의 충돌을 나타내는 예외 클래스입니다.
+ * 리소스 간의 충돌이 발생했을 때 사용되는 예외 클래스입니다.
  * <p>
- * 이 예외는 HTTP 상태 코드 409 (Conflict)를 나타내며, 주로 이미 존재하는 리소스와의 충돌이 발생했을 때 사용됩니다.
- * </p>
+ * HTTP 상태 코드 409 (Conflict)를 나타냅니다.
+ * 예: 중복된 사용자 등록, 이미 존재하는 데이터 저장 시 발생할 수 있습니다.
  */
 public class ConflictException extends CommonHttpException {
+
+    /**
+     * HTTP 상태 코드 409 (Conflict)
+     */
     private static final int HTTP_STATUS_CODE = 409;
 
     /**

@@ -8,13 +8,16 @@ package com.nhnacademy.common.exception;
  */
 public class CommonHttpException extends RuntimeException {
 
+    /**
+     * HTTP 상태 코드 (예: 400, 404, 500 등)
+     */
     private final int statusCode;
 
     /**
-     * 주어진 상태 코드와 메시지로 {@link CommonHttpException} 예외를 생성합니다.
+     * 상태 코드와 메시지를 기반으로 예외 객체를 생성합니다.
      *
      * @param statusCode HTTP 상태 코드
-     * @param message    오류 메시지
+     * @param message    예외 메시지
      */
     public CommonHttpException(final int statusCode, final String message) {
         super(message);
