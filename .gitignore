@@ -7,6 +7,12 @@ target/
 ### .env 무시
 .env
 
+### user 폴더 무시
+/src/main/java/com/nhnacademy/user/
+/src/test/java/com/nhnacademy/user/
+/src/test/java/com/nhnacademy/common/controller/
+
+
 ### STS ###
 .apt_generated
 .classpath

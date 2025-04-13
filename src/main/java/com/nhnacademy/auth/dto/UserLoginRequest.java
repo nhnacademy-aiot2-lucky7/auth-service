@@ -1,4 +1,4 @@
-package com.nhnacademy.user.dto;
+package com.nhnacademy.auth.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
