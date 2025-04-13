@@ -9,6 +9,12 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+/**
+ * AESUtil 클래스는 AES 알고리즘을 사용하여 데이터를 암호화하고 복호화하는 유틸리티 클래스입니다.
+ * <p>
+ * 이 클래스는 GCM 모드에서 AES 알고리즘을 사용하여 안전한 암호화 및 복호화를 제공합니다.
+ * </p>
+ */
 @Component
 public class AESUtil {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
@@ -17,10 +23,23 @@ public class AESUtil {
 
     private final SecretKeySpec keySpec;
 
+    /**
+     * 생성자에서 AES 키를 초기화합니다.
+     *
+     * @param secretKey AES 암호화에 사용할 비밀키
+     * @throws IllegalArgumentException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
+     */
     public AESUtil(@Value("${aes.secret}") String secretKey) {
         this.keySpec = getKeySpec(secretKey);
     }
 
+    /**
+     * 주어진 평문을 AES 알고리즘을 사용하여 암호화합니다.
+     *
+     * @param plainText 암호화할 평문
+     * @return 암호화된 텍스트 (Base64 인코딩된 문자열)
+     * @throws Exception 암호화 과정에서 발생할 수 있는 예외
+     */
     public String encrypt(String plainText) throws Exception {
         byte[] iv = generateRandomIV();
         Cipher cipher = Cipher.getInstance(ALGORITHM);
@@ -36,6 +55,13 @@ public class AESUtil {
         return Base64.getEncoder().encodeToString(encryptedWithIv);
     }
 
+    /**
+     * 주어진 암호문을 AES 알고리즘을 사용하여 복호화합니다.
+     *
+     * @param encryptedText 암호화된 텍스트 (Base64 인코딩된 문자열)
+     * @return 복호화된 평문
+     * @throws Exception 복호화 과정에서 발생할 수 있는 예외
+     */
     public String decrypt(String encryptedText) throws Exception {
         byte[] decoded = Base64.getDecoder().decode(encryptedText);
 
@@ -54,6 +80,13 @@ public class AESUtil {
         return new String(decrypted);
     }
 
+    /**
+     * 비밀키를 SecretKeySpec 객체로 변환합니다.
+     *
+     * @param secretKey 비밀키
+     * @return SecretKeySpec 객체
+     * @throws IllegalArgumentException 비밀키 길이가 256비트(32바이트)가 아닌 경우 예외 발생
+     */
     private SecretKeySpec getKeySpec(String secretKey) {
         byte[] keyBytes = secretKey.getBytes();
         if (keyBytes.length != 32) {
@@ -62,6 +95,11 @@ public class AESUtil {
         return new SecretKeySpec(keyBytes, "AES");
     }
 
+    /**
+     * 랜덤 IV(Initialization Vector)를 생성합니다.
+     *
+     * @return 생성된 IV (96비트)
+     */
     private byte[] generateRandomIV() {
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);

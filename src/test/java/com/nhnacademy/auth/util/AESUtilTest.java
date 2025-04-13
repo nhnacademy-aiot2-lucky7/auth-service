@@ -2,20 +2,19 @@ package com.nhnacademy.auth.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
+@SpringBootTest
 @ActiveProfiles("test")
 class AESUtilTest {
-    private AESUtil aesUtil;
-    private final String secretKey = "cv0hcgi832wdbft1vh7v0z5x1v814xfh";
 
-    @BeforeEach
-    void setup() {
-        aesUtil = new AESUtil(secretKey);
-    }
+    @Autowired
+    AESUtil aesUtil;
 
     @Test
     @DisplayName("암호화/복호화 테스트")
