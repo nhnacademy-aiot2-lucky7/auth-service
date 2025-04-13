@@ -1,5 +1,7 @@
 package com.nhnacademy.common.exception;
 
+import lombok.Getter;
+
 /**
  * HTTP 상태 코드와 메시지를 함께 포함할 수 있는 사용자 정의 예외 클래스입니다.
  * <p>
@@ -9,6 +11,11 @@ public class CommonHttpException extends RuntimeException {
 
     /**
      * HTTP 상태 코드 (예: 400, 404, 500 등)
+     * -- GETTER --
+     *  저장된 HTTP 상태 코드를 반환합니다.
+     *
+     * @return HTTP 상태 코드
+
      */
     private final int statusCode;
 
@@ -35,12 +42,4 @@ public class CommonHttpException extends RuntimeException {
         this.statusCode = statusCode;
     }
 
-    /**
-     * 저장된 HTTP 상태 코드를 반환합니다.
-     *
-     * @return HTTP 상태 코드
-     */
-    public int getStatusCode() {
-        return statusCode;
-    }
 }
