@@ -1,14 +1,20 @@
 package com.nhnacademy.auth.service.impl;
 
 import com.nhnacademy.auth.provider.JwtProvider;
+import com.nhnacademy.auth.adapter.UserAdapter;
+import com.nhnacademy.auth.dto.UserLoginRequest;
+import com.nhnacademy.auth.dto.UserRegisterRequest;
 import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.common.exception.NotFoundException;
 import com.nhnacademy.common.exception.UnauthorizedException;
 import com.nhnacademy.token.domain.RefreshToken;
 import com.nhnacademy.token.dto.AccessTokenResponse;
 import com.nhnacademy.token.repository.RefreshTokenRepository;
+import com.nhnacademy.common.provider.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,9 +37,37 @@ public class AuthServiceImpl implements AuthService {
     private static final String LOGOUT_VALUE = "logout";
     private static final String REFRESH_TOKEN_PREFIX = "refreshToken:";
 
+    private final UserAdapter userAdapter;
     private final JwtProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
+
+
+    @Override
+    public String signUp(UserRegisterRequest userRegisterRequest) {
+        ResponseEntity<Void> responseEntity = userAdapter.createUser(userRegisterRequest);
+
+        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
+            // 회원가입 성공 -> 토큰 생성
+            String token = jwtProvider.createAccessToken(userRegisterRequest.getUserEmail());
+            return token;
+        } else {
+            throw new RuntimeException("회원가입 실패: 상태코드 " + responseEntity.getStatusCode());
+        }
+    }
+
+    @Override
+    public String signIn(UserLoginRequest userLoginRequest) {
+        ResponseEntity<Void> responseEntity = userAdapter.loginUser(userLoginRequest);
+
+        if (responseEntity.getStatusCode() == HttpStatus.OK) {
+            // 로그인 성공 -> 토큰 생성
+            String token = jwtProvider.createAccessToken(userLoginRequest.getUserEmail());
+            return token;
+        } else {
+            throw new RuntimeException("로그인 실패: 상태코드 " + responseEntity.getStatusCode());
+        }
+    }
 
     /**
      * 액세스 토큰과 리프레시 토큰을 생성하는 메소드입니다.
@@ -54,7 +88,6 @@ public class AuthServiceImpl implements AuthService {
         // JWT 토큰 생성
         String accessToken = jwtProvider.createAccessToken(userId);
         String refreshToken = jwtProvider.createRefreshToken(userId);
-
         // Redis에 refreshToken 저장 (유효기간 설정)
         redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + userId, refreshToken, 7, TimeUnit.DAYS);  // 예: 7일간 유효
 
@@ -64,14 +97,13 @@ public class AuthServiceImpl implements AuthService {
             // 기존 refreshToken이 있으면 갱신
             existingRefreshToken.setToken(refreshToken);
             refreshTokenRepository.save(existingRefreshToken);
-        } else {
             // 새로운 refreshToken 저장
             RefreshToken newRefreshToken = new RefreshToken(userId, refreshToken);
             refreshTokenRepository.save(newRefreshToken);
-        }
 
-        // 생성된 토큰을 반환
-        return new AccessTokenResponse(accessToken, jwtProvider.getRemainingExpiration(accessToken));
+            // 생성된 토큰을 반환
+            return new AccessTokenResponse(accessToken, jwtProvider.getRemainingExpiration(accessToken));
+        }
     }
 
     /**
@@ -103,7 +135,6 @@ public class AuthServiceImpl implements AuthService {
 
         // 만료 예정 AccessToken의 ttl
         long expiredAccessTokenTTL = jwtProvider.getRemainingExpiration(accessToken);
-
         // 만료 예정 AccessToken 블랙리스트 등록
         redisTemplate.opsForValue().set(BLACKLIST_PREFIX + accessToken, LOGOUT_VALUE, expiredAccessTokenTTL, TimeUnit.MILLISECONDS);
 

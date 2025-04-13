@@ -9,6 +9,9 @@ import com.nhnacademy.token.dto.AccessTokenResponse;
  * 로그인 시 액세스 토큰과 리프레시 토큰을 생성하는 기능을 제공합니다.
  * </p>
  */
+import com.nhnacademy.auth.dto.UserLoginRequest;
+import com.nhnacademy.auth.dto.UserRegisterRequest;
+
 public interface AuthService {
 
     /**
@@ -21,6 +24,7 @@ public interface AuthService {
      * @return 액세스 토큰과 만료 시간을 포함하는 {@link AccessTokenResponse} 객체
      */
     AccessTokenResponse createAccessAndRefreshToken(String userId);
+    String signUp(UserRegisterRequest userRegisterRequest);
 
     /**
      * 액세스 토큰을 재발급하는 메소드입니다.
@@ -36,4 +40,5 @@ public interface AuthService {
      * @param accessToken 로그아웃할 때 사용할 액세스 토큰
      */
     void deleteAccessAndRefreshToken(String accessToken);
+    String signIn(UserLoginRequest userLoginRequest);
 }
