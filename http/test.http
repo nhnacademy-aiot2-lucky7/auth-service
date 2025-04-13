@@ -1,5 +1,5 @@
-### user 등록
-POST http://localhost:8080/users/register
+### 회원가입
+POST http://luckyseven.live:10234/users/signUp
 Content-Type: application/json
 
 {
@@ -8,6 +8,6 @@ Content-Type: application/json
   "userPassword": "test123???"
 }
 
-### user 조회
-GET http://localhost:8080/
+### 로그인
+GET http://luckyseven.live:10234/users/singIn
 Accept: application/json
