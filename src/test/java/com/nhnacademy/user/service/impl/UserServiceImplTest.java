@@ -56,6 +56,7 @@ class UserServiceImplTest {
                 User.Role.USER, 1l, "user1", "user1@email.com"
         );
 
+
         Mockito.when(userRepository.existsByUserEmail(Mockito.anyString())).thenReturn(false);
         Mockito.when(userRepository.findUserResponseByUserNo(Mockito.anyLong()))
                 .thenReturn(Optional.of(fakeResponse));
