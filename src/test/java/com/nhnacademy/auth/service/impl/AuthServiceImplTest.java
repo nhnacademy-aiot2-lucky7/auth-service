@@ -67,7 +67,7 @@ class AuthServiceImplTest {
         when(userAdapter.createUser(userSignUpRequest)).thenReturn(responseEntity);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signUp(userSignUpRequest));
-        assertEquals("회원가입 실패: 상태코드 400 BAD_REQUEST", exception.getMessage());
+        assertEquals("SignUp FAIL!!!!", exception.getMessage());
     }
 
     @Test
@@ -94,6 +94,6 @@ class AuthServiceImplTest {
         when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signIn(userSignInRequest));
-        assertEquals("로그인 실패: 상태코드 400 BAD_REQUEST", exception.getMessage());
+        assertEquals("SignIn FAIL!!!", exception.getMessage());
     }
 }

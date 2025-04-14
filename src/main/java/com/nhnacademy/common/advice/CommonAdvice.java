@@ -80,7 +80,7 @@ public class CommonAdvice {
     public ResponseEntity<String> failSignUpExceptionHandler(FailSignUpException ex){
         log.warn("FailSignUpException 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(ex.getStatusCode())
+                .status(HttpStatus.BAD_REQUEST)
                 .body("FailSignUpException EXCEPTION HANDLER: "+ex.getMessage());
     }
 
@@ -96,7 +96,7 @@ public class CommonAdvice {
     public ResponseEntity<String> failSignInExceptionHandler(FailSignInException ex){
         log.warn("FailSignInException 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(ex.getStatusCode())
+                .status(HttpStatus.BAD_REQUEST)
                 .body("FailSignInException EXCEPTION HANDLER: "+ex.getMessage());
     }
 
