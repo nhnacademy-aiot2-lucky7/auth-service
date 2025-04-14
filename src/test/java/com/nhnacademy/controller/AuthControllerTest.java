@@ -45,7 +45,7 @@ class AuthControllerTest {
         UserSignUpRequest request = new UserSignUpRequest("auth", "auth@email.com", "auth12345!");
         String json = objectMapper.writeValueAsString(request);
 
-        when(userAdapter.createUser(Mockito.any(UserRegisterRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
+        when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
         when(jwtProvider.createAccessToken("auth@email.com")).thenReturn("mock-token");
 
         mockMvc.perform(post("/auth/signUp")

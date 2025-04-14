@@ -34,4 +34,8 @@ public class UserSignInRequest {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}$")
     String userPassword;
 
+    public UserSignInRequest(String userEmail, String userPassword) {
+        this.userEmail = userEmail;
+        this.userPassword = userPassword;
+    }
 }
