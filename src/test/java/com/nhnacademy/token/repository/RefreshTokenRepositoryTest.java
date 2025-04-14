@@ -47,8 +47,8 @@ class RefreshTokenRepositoryTest {
         Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findById(userId);
 
         Assertions.assertTrue(optionalRefreshToken.isPresent());
-        Assertions.assertEquals(optionalRefreshToken.get().getRefreshToken(), token);
+        Assertions.assertEquals(optionalRefreshToken.get().toString(), token);
         Assertions.assertEquals("test@nhnacademy.com", optionalRefreshToken.get().getUserId());
-        Assertions.assertEquals("test@nhnacademy.com", jwtProvider.getUserIdFromToken(optionalRefreshToken.get().getRefreshToken()));
+        Assertions.assertEquals("test@nhnacademy.com", jwtProvider.getUserIdFromToken(optionalRefreshToken.get().toString()));
     }
 }
