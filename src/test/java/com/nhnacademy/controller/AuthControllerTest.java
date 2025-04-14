@@ -2,8 +2,8 @@ package com.nhnacademy.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.auth.adapter.UserAdapter;
-import com.nhnacademy.auth.dto.UserLoginRequest;
-import com.nhnacademy.auth.dto.UserRegisterRequest;
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.common.provider.JwtProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입: 201 성공")
     void signUp_201_success() throws Exception {
-        UserRegisterRequest request = new UserRegisterRequest("auth", "auth@email.com", "auth12345!");
+        UserSignUpRequest request = new UserSignUpRequest("auth", "auth@email.com", "auth12345!");
         String json = objectMapper.writeValueAsString(request);
 
         when(userAdapter.createUser(Mockito.any(UserRegisterRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
@@ -59,10 +59,10 @@ class AuthControllerTest {
     @Test
     @DisplayName("로그인: 200 성공")
     void signIn_200_success() throws Exception {
-        UserLoginRequest request = new UserLoginRequest("user@email.com", "auth1234!");
+        UserSignInRequest request = new UserSignInRequest("user@email.com", "auth1234!");
         String json = objectMapper.writeValueAsString(request);
 
-        when(userAdapter.loginUser(Mockito.any(UserLoginRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(userAdapter.loginUser(Mockito.any(UserSignInRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         when(jwtProvider.createAccessToken("user@email.com")).thenReturn("jwt-token");
 
         mockMvc.perform(post("/auth/signIn")

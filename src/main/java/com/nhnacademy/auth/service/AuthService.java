@@ -1,6 +1,8 @@
 package com.nhnacademy.auth.service;
 
 import com.nhnacademy.token.dto.AccessTokenResponse;
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 
 /**
  * AuthService 인터페이스는 인증 관련 서비스 메소드를 정의합니다.
@@ -9,11 +11,9 @@ import com.nhnacademy.token.dto.AccessTokenResponse;
  * 로그인 시 액세스 토큰과 리프레시 토큰을 생성하는 기능을 제공합니다.
  * </p>
  */
-import com.nhnacademy.auth.dto.UserLoginRequest;
-import com.nhnacademy.auth.dto.UserRegisterRequest;
-
 public interface AuthService {
 
+    String signUp(UserSignUpRequest userSignUpRequest);
     /**
      * 사용자 인증 정보를 기반으로 액세스 토큰과 리프레시 토큰을 생성합니다.
      *
@@ -24,8 +24,11 @@ public interface AuthService {
      * @return 액세스 토큰과 만료 시간을 포함하는 {@link AccessTokenResponse} 객체
      */
     AccessTokenResponse createAccessAndRefreshToken(String userId);
-    String signUp(UserRegisterRequest userRegisterRequest);
+    String signUp(UserRegisterRequest userSignInRequest);
 
+    String signIn(UserSignInRequest userSignInRequest);
+
+    void signOut(String accessToken);
     /**
      * 액세스 토큰을 재발급하는 메소드입니다.
      *
@@ -40,5 +43,5 @@ public interface AuthService {
      * @param accessToken 로그아웃할 때 사용할 액세스 토큰
      */
     void deleteAccessAndRefreshToken(String accessToken);
-    String signIn(UserLoginRequest userLoginRequest);
+    String signIn(UserSignInRequest userSignInRequest);
 }

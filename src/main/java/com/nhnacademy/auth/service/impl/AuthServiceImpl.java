@@ -2,14 +2,11 @@ package com.nhnacademy.auth.service.impl;
 
 import com.nhnacademy.auth.provider.JwtProvider;
 import com.nhnacademy.auth.adapter.UserAdapter;
-import com.nhnacademy.auth.dto.UserLoginRequest;
-import com.nhnacademy.auth.dto.UserRegisterRequest;
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
-import com.nhnacademy.common.exception.NotFoundException;
-import com.nhnacademy.common.exception.UnauthorizedException;
-import com.nhnacademy.token.domain.RefreshToken;
-import com.nhnacademy.token.dto.AccessTokenResponse;
-import com.nhnacademy.token.repository.RefreshTokenRepository;
+import com.nhnacademy.common.exception.FailSignInException;
+import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.common.provider.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -44,29 +41,34 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public String signUp(UserRegisterRequest userRegisterRequest) {
-        ResponseEntity<Void> responseEntity = userAdapter.createUser(userRegisterRequest);
+    public String signUp(UserSignUpRequest userSignUpRequest) {
+        ResponseEntity<Void> responseEntity = userAdapter.createUser(userSignUpRequest);
 
         if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             // 회원가입 성공 -> 토큰 생성
-            String token = jwtProvider.createAccessToken(userRegisterRequest.getUserEmail());
+            String token = jwtProvider.createAccessToken(userSignUpRequest.getUserEmail());
             return token;
         } else {
-            throw new RuntimeException("회원가입 실패: 상태코드 " + responseEntity.getStatusCode());
+            throw new FailSignUpException(responseEntity.getStatusCode().value());
         }
     }
 
     @Override
-    public String signIn(UserLoginRequest userLoginRequest) {
-        ResponseEntity<Void> responseEntity = userAdapter.loginUser(userLoginRequest);
+    public String signIn(UserSignInRequest userSignInRequest) {
+        ResponseEntity<Void> responseEntity = userAdapter.loginUser(userSignInRequest);
 
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             // 로그인 성공 -> 토큰 생성
-            String token = jwtProvider.createAccessToken(userLoginRequest.getUserEmail());
+            String token = jwtProvider.createAccessToken(userSignInRequest.getUserEmail());
             return token;
         } else {
-            throw new RuntimeException("로그인 실패: 상태코드 " + responseEntity.getStatusCode());
+            throw new FailSignInException(responseEntity.getStatusCode().value());
         }
+    }
+
+    @Override
+    public void signOut(String accessToken) {
+
     }
 
     /**

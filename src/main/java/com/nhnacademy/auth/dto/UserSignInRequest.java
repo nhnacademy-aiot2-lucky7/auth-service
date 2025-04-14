@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
-public class UserLoginRequest {
+public class UserSignInRequest {
 
     /**
      * 사용자 이메일
@@ -34,14 +34,4 @@ public class UserLoginRequest {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}$")
     String userPassword;
 
-    /**
-     * 생성자 - 이메일과 비밀번호를 지정하여 객체를 생성합니다.
-     *
-     * @param userEmail    사용자 이메일
-     * @param userPassword 사용자 비밀번호
-     */
-    public UserLoginRequest(String userEmail, String userPassword) {
-        this.userEmail = userEmail;
-        this.userPassword = userPassword;
-    }
 }
