@@ -18,6 +18,7 @@ public class CommonHttpException extends RuntimeException {
 
      */
     private final int statusCode;
+    private final String message;
 
     /**
      * 상태 코드와 메시지를 기반으로 예외 객체를 생성합니다.

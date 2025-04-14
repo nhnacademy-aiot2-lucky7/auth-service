@@ -1,8 +1,8 @@
 package com.nhnacademy.auth.service.impl;
 
 import com.nhnacademy.auth.adapter.UserAdapter;
-import com.nhnacademy.auth.dto.UserLoginRequest;
-import com.nhnacademy.auth.dto.UserRegisterRequest;
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.common.provider.JwtProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,14 +33,14 @@ class AuthServiceImplTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
-    private UserRegisterRequest userRegisterRequest;
-    private UserLoginRequest userLoginRequest;
+    private UserSignUpRequest userSignUpRequest;
+    private UserSignInRequest userSignInRequest;
 
     @BeforeEach
     void setUp() {
 
-        userRegisterRequest = new UserRegisterRequest("auth", "auth@email.com", "api12345!");
-        userLoginRequest = new UserLoginRequest("auth@email.com", "api12345!");
+        userSignUpRequest = new UserSignUpRequest("auth", "auth@email.com", "api12345!");
+        userSignInRequest = new UserSignInRequest("auth@email.com", "api12345!");
     }
 
     @Test
@@ -48,15 +48,15 @@ class AuthServiceImplTest {
     void signUp_201_success() {
 
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
-        when(userAdapter.createUser(userRegisterRequest)).thenReturn(responseEntity);
-        when(jwtProvider.createAccessToken(userRegisterRequest.getUserEmail())).thenReturn("mockToken");
+        when(userAdapter.createUser(userSignUpRequest)).thenReturn(responseEntity);
+        when(jwtProvider.createAccessToken(userSignUpRequest.getUserEmail())).thenReturn("mockToken");
 
-        String token = authService.signUp(userRegisterRequest);
+        String token = authService.signUp(userSignUpRequest);
 
         assertNotNull(token);
         assertEquals("mockToken", token);
-        verify(userAdapter, times(1)).createUser(userRegisterRequest);
-        verify(jwtProvider, times(1)).createAccessToken(userRegisterRequest.getUserEmail());
+        verify(userAdapter, times(1)).createUser(userSignUpRequest);
+        verify(jwtProvider, times(1)).createAccessToken(userSignUpRequest.getUserEmail());
     }
 
     @Test
@@ -64,9 +64,9 @@ class AuthServiceImplTest {
     void signUp_400_fail() {
 
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        when(userAdapter.createUser(userRegisterRequest)).thenReturn(responseEntity);
+        when(userAdapter.createUser(userSignUpRequest)).thenReturn(responseEntity);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signUp(userRegisterRequest));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signUp(userSignUpRequest));
         assertEquals("회원가입 실패: 상태코드 400 BAD_REQUEST", exception.getMessage());
     }
 
@@ -75,15 +75,15 @@ class AuthServiceImplTest {
     void signIn_200_success() {
 
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.OK);
-        when(userAdapter.loginUser(userLoginRequest)).thenReturn(responseEntity);
-        when(jwtProvider.createAccessToken(userLoginRequest.getUserEmail())).thenReturn("mockToken");
+        when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
+        when(jwtProvider.createAccessToken(userSignInRequest.getUserEmail())).thenReturn("mockToken");
 
-        String token = authService.signIn(userLoginRequest);
+        String token = authService.signIn(userSignInRequest);
 
         assertNotNull(token);
         assertEquals("mockToken", token);
-        verify(userAdapter, times(1)).loginUser(userLoginRequest);
-        verify(jwtProvider, times(1)).createAccessToken(userLoginRequest.getUserEmail());
+        verify(userAdapter, times(1)).loginUser(userSignInRequest);
+        verify(jwtProvider, times(1)).createAccessToken(userSignInRequest.getUserEmail());
     }
 
     @Test
@@ -91,9 +91,9 @@ class AuthServiceImplTest {
     void signIn_400_fail() {
 
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        when(userAdapter.loginUser(userLoginRequest)).thenReturn(responseEntity);
+        when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signIn(userLoginRequest));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signIn(userSignInRequest));
         assertEquals("로그인 실패: 상태코드 400 BAD_REQUEST", exception.getMessage());
     }
 }

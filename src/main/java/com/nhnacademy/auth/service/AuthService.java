@@ -1,12 +1,14 @@
 package com.nhnacademy.auth.service;
 
 
-import com.nhnacademy.auth.dto.UserLoginRequest;
-import com.nhnacademy.auth.dto.UserRegisterRequest;
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 
 public interface AuthService {
 
-    String signUp(UserRegisterRequest userRegisterRequest);
+    String signUp(UserSignUpRequest userSignUpRequest);
 
-    String signIn(UserLoginRequest userLoginRequest);
+    String signIn(UserSignInRequest userSignInRequest);
+
+    void signOut(String accessToken);
 }
