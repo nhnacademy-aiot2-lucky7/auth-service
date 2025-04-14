@@ -1,6 +1,5 @@
 package com.nhnacademy.auth.controller;
 
-import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.auth.service.impl.AuthServiceImpl;
 import com.nhnacademy.token.dto.AccessTokenResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +34,7 @@ class AuthControllerTest {
 
         when(authService.reissueAccessToken(accessToken)).thenReturn(response);
 
-        mockMvc.perform(post("/api/auth/token/refresh")
+        mockMvc.perform(post("/auth/token/refresh")
                         .cookie(new Cookie("accessToken", accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.SET_COOKIE))
@@ -50,7 +49,7 @@ class AuthControllerTest {
 
         doNothing().when(authService).deleteAccessAndRefreshToken(accessToken);
 
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(post("/auth/logout")
                         .cookie(new Cookie("accessToken", accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.SET_COOKIE))

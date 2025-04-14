@@ -13,12 +13,13 @@ import java.time.Duration;
 /**
  * AuthController 클래스는 인증 관련 API 요청을 처리하는 컨트롤러입니다.
  * <p>
- * 이 클래스는 액세스 토큰 재발급 및 로그아웃 기능을 제공하며, 요청에 따라
- * 새로운 액세스 토큰을 발급하거나, 기존 액세스 토큰을 삭제하여 로그아웃 처리합니다.
+ * 이 클래스는 액세스 토큰 재발급 및 로그아웃 기능을 제공하며, 클라이언트의 요청에 따라
+ * 새로운 액세스 토큰을 발급하거나, 기존 액세스 토큰을 삭제하여 로그아웃 처리를 합니다.
+ * 액세스 토큰은 쿠키에 담아 클라이언트로 전송됩니다.
  * </p>
  */
 @RestController
-@RequestMapping(value = "/api/auth")
+@RequestMapping(value = "/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

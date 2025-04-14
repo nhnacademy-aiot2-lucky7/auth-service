@@ -1,6 +1,7 @@
 package com.nhnacademy.auth.provider;
 
 import com.nhnacademy.auth.util.AESUtil;
+import com.nhnacademy.common.exception.UnauthorizedException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,9 @@ public class JwtProvider {
     private final Key key;
     private final AESUtil aesUtil;
     // AccessToken 유효시간 = 1시간
-    private final long accessTokenValidity = 60 * 60 * 1000L;
+    private static final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L;
     // RefreshToken 유효시간 = 일주일
-    private final long refreshTokenValidity = 7 * 24 * 60  * 60 * 1000L;
+    private static final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60  * 60 * 1000L;
 
     /**
      * JwtProvider의 생성자입니다.
@@ -46,7 +47,7 @@ public class JwtProvider {
      * @return 생성된 액세스 토큰
      */
     public String createAccessToken(String userId) {
-        return createToken(userId, accessTokenValidity);
+        return createToken(userId, ACCESS_TOKEN_VALIDITY);
     }
 
     /**
@@ -56,7 +57,7 @@ public class JwtProvider {
      * @return 생성된 리프레시 토큰
      */
     public String createRefreshToken(String userId) {
-        return createToken(userId, refreshTokenValidity);
+        return createToken(userId, REFRESH_TOKEN_VALIDITY);
     }
 
     /**
@@ -65,7 +66,7 @@ public class JwtProvider {
      * @param userId 사용자 ID
      * @param validity 토큰의 유효시간(밀리초 단위)
      * @return 생성된 JWT 토큰
-     * @throws IllegalStateException 토큰 생성 중 오류가 발생한 경우
+     * @throws UnauthorizedException 토큰 생성 중 오류가 발생한 경우
      */
     private String createToken(String userId, long validity) {
 
@@ -84,7 +85,7 @@ public class JwtProvider {
                     .signWith(key, SignatureAlgorithm.HS256)
                     .compact();
         } catch (Exception e) {
-            throw new IllegalStateException("토큰에서 사용자 ID 암호화 중 예외 발생", e);
+            throw new UnauthorizedException("토큰에서 사용자 ID 암호화 중 예외 발생");
         }
 
     }
@@ -94,7 +95,7 @@ public class JwtProvider {
      *
      * @param token JWT 토큰
      * @return 추출된 사용자 ID
-     * @throws IllegalStateException 토큰에서 사용자 ID를 추출하는 중 오류가 발생한 경우
+     * @throws UnauthorizedException 토큰에서 사용자 ID를 추출하는 중 오류가 발생한 경우
      */
     public String getUserIdFromToken(String token) {
         try {
@@ -107,7 +108,7 @@ public class JwtProvider {
 
             return aesUtil.decrypt(encryptedUserId);
         } catch (Exception e) {
-            throw new IllegalStateException("토큰에서 사용자 ID 복호화 중 예외 발생", e);
+            throw new UnauthorizedException("토큰에서 사용자 ID 복호화 중 예외 발생");
         }
     }
 

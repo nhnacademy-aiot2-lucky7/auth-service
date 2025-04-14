@@ -33,5 +33,5 @@ public class RefreshToken implements Serializable {
      * 사용자에 대한 refreshToken 값입니다.
      * 사용자 로그인 시 발급되는 refreshToken이 저장됩니다.
      */
-    private String refreshToken;
+    private String token;
 }
