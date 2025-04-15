@@ -30,7 +30,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signUp")
-    public ResponseEntity<Void> signUp(@RequestBody UserSignUpRequest userSignUpRequest, HttpServletResponse response) {
+    public ResponseEntity<Void> signUp(@RequestBody UserSignUpRequest userSignUpRequest) {
+
         AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
 
         // 쿠키에 토큰 담기
@@ -49,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<Void> signIn(@RequestBody UserSignInRequest userSignInRequest, HttpServletResponse response){
+    public ResponseEntity<Void> signIn(@RequestBody UserSignInRequest userSignInRequest){
         AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
 
         // 쿠키에 토큰 담기
