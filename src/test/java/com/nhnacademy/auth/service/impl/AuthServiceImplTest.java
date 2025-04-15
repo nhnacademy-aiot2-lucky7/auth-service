@@ -4,6 +4,7 @@ import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.provider.JwtProvider;
+import com.nhnacademy.token.dto.AccessTokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -28,7 +30,10 @@ class AuthServiceImplTest {
     private UserAdapter userAdapter;
 
     @Mock
-    private JwtProvider jwtProvider;
+    AccessTokenResponse accessTokenResponse;
+
+    @Mock
+    JwtProvider jwtProvider;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -42,22 +47,24 @@ class AuthServiceImplTest {
         userSignUpRequest = new UserSignUpRequest("auth", "auth@email.com", "api12345!");
         userSignInRequest = new UserSignInRequest("auth@email.com", "api12345!");
     }
-//
-//    @Test
-//    @DisplayName("회원가입: 201 성공")
-//    void signUp_201_success() {
-//
-//        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
-//        when(userAdapter.createUser(userSignUpRequest)).thenReturn(responseEntity);
-//        when(jwtProvider.createAccessToken(userSignUpRequest.getUserEmail())).thenReturn("mockToken");
-//
-//        String token = authService.signUp(userSignUpRequest);
-//
-//        assertNotNull(token);
-//        assertEquals("mockToken", token);
-//        verify(userAdapter, times(1)).createUser(userSignUpRequest);
-//        verify(jwtProvider, times(1)).createAccessToken(userSignUpRequest.getUserEmail());
-//    }
+
+    @Test
+    @DisplayName("회원가입: 201 성공")
+    void signUp_201_success() {
+
+        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
+
+        Mockito.when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(responseEntity);
+        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("mockToken");
+
+        accessTokenResponse = authService.signUp(userSignUpRequest);
+        log.info("accessToken: "+accessTokenResponse);
+
+        assertNotNull(accessTokenResponse);
+        assertEquals("mockToken", accessTokenResponse);
+        verify(userAdapter, times(1)).createUser(userSignUpRequest);
+        verify(accessTokenResponse, times(1)).getAccessToken();
+    }
 
     @Test
     @DisplayName("회원가입: 400 실패")
