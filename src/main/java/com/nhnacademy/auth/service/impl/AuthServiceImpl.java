@@ -7,7 +7,11 @@ import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.common.exception.FailSignInException;
 import com.nhnacademy.common.exception.FailSignUpException;
-import com.nhnacademy.common.provider.JwtProvider;
+import com.nhnacademy.common.exception.NotFoundException;
+import com.nhnacademy.common.exception.UnauthorizedException;
+import com.nhnacademy.token.domain.RefreshToken;
+import com.nhnacademy.token.dto.AccessTokenResponse;
+import com.nhnacademy.token.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
@@ -106,6 +110,7 @@ public class AuthServiceImpl implements AuthService {
             // 생성된 토큰을 반환
             return new AccessTokenResponse(accessToken, jwtProvider.getRemainingExpiration(accessToken));
         }
+        return null;
     }
 
     /**
