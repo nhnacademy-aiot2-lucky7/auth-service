@@ -6,8 +6,8 @@ import com.nhnacademy.auth.dto.UserSignUpRequest;
 
 public interface AuthService {
 
-    String signUp(UserSignUpRequest userSignInRequest);
-    String signIn(UserSignInRequest userSignInRequest);
+    AccessTokenResponse signUp(UserSignUpRequest userSignInRequest);
+    AccessTokenResponse signIn(UserSignInRequest userSignInRequest);
     void signOut(String accessToken);
     AccessTokenResponse reissueAccessToken(String accessToken);
     AccessTokenResponse createAccessAndRefreshToken(String userId);

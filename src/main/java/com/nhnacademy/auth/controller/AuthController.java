@@ -1,9 +1,13 @@
 package com.nhnacademy.auth.controller;
 
+import com.nhnacademy.auth.dto.UserSignInRequest;
+import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.token.dto.AccessTokenResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,20 +29,11 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * 액세스 토큰을 재발급하는 API 엔드포인트입니다.
-     * <p>
-     * 클라이언트에서 전달한 액세스 토큰을 사용하여 새로운 액세스 토큰을 재발급하고,
-     * 재발급된 액세스 토큰을 쿠키에 설정하여 응답합니다.
-     * </p>
-     *
-     * @param accessToken 클라이언트에서 전달한 현재 액세스 토큰
-     * @return 새로 발급된 액세스 토큰을 포함한 쿠키와 함께 성공 메시지를 반환
-     */
-    @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshAccessToken(@CookieValue(value = "accessToken") String accessToken) {
-        AccessTokenResponse accessTokenResponse = authService.reissueAccessToken(accessToken);
+    @PostMapping("/signUp")
+    public ResponseEntity<Void> signUp(@RequestBody UserSignUpRequest userSignUpRequest, HttpServletResponse response) {
+        AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
 
+        // 쿠키에 토큰 담기
         ResponseCookie cookie = ResponseCookie.from("accessToken", accessTokenResponse.getAccessToken())
                 .httpOnly(true)
                 .secure(true)
@@ -47,9 +42,29 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("AccessToken 재발급 성공!");
+                .build();
+    }
+
+    @PostMapping("/signIn")
+    public ResponseEntity<Void> signIn(@RequestBody UserSignInRequest userSignInRequest, HttpServletResponse response){
+        AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
+
+        // 쿠키에 토큰 담기
+        ResponseCookie cookie = ResponseCookie.from("accessToken", accessTokenResponse.getAccessToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 
     /**
@@ -64,7 +79,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@CookieValue(value = "accessToken") String accessToken) {
-        authService.deleteAccessAndRefreshToken(accessToken);
+        authService.signOut(accessToken);
 
         // accessToken 쿠키 삭제
         ResponseCookie expiredAccessToken = ResponseCookie.from("accessToken", "")

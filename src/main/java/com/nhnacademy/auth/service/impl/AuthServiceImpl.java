@@ -45,26 +45,30 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public String signUp(UserSignUpRequest userSignUpRequest) {
+    public AccessTokenResponse signUp(UserSignUpRequest userSignUpRequest) {
         ResponseEntity<Void> responseEntity = userAdapter.createUser(userSignUpRequest);
 
         if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
             // 회원가입 성공 -> 토큰 생성
-            String token = jwtProvider.createAccessToken(userSignUpRequest.getUserEmail());
-            return token;
+            String userId = userSignUpRequest.getUserEmail();
+
+            AccessTokenResponse accessTokenResponse = createAccessAndRefreshToken(userId);
+            return accessTokenResponse;
         } else {
             throw new FailSignUpException(responseEntity.getStatusCode().value());
         }
     }
 
     @Override
-    public String signIn(UserSignInRequest userSignInRequest) {
+    public AccessTokenResponse signIn(UserSignInRequest userSignInRequest) {
         ResponseEntity<Void> responseEntity = userAdapter.loginUser(userSignInRequest);
 
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             // 로그인 성공 -> 토큰 생성
-            String token = jwtProvider.createAccessToken(userSignInRequest.getUserEmail());
-            return token;
+            String userId = userSignInRequest.getUserEmail();
+
+            AccessTokenResponse accessTokenResponse = reissueAccessToken(userId);
+            return accessTokenResponse;
         } else {
             throw new FailSignInException(responseEntity.getStatusCode().value());
         }
@@ -72,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void signOut(String accessToken) {
-
+        deleteAccessAndRefreshToken(accessToken);
     }
 
     /**
