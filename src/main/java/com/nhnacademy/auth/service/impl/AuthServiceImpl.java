@@ -52,8 +52,7 @@ public class AuthServiceImpl implements AuthService {
             // 회원가입 성공 -> 토큰 생성
             String userId = userSignUpRequest.getUserEmail();
 
-            AccessTokenResponse accessTokenResponse = createAccessAndRefreshToken(userId);
-            return accessTokenResponse;
+            return createAccessAndRefreshToken(userId);
         } else {
             throw new FailSignUpException(responseEntity.getStatusCode().value());
         }
@@ -67,8 +66,7 @@ public class AuthServiceImpl implements AuthService {
             // 로그인 성공 -> 토큰 생성
             String userId = userSignInRequest.getUserEmail();
 
-            AccessTokenResponse accessTokenResponse = reissueAccessToken(userId);
-            return accessTokenResponse;
+            return reissueAccessToken(userId);
         } else {
             throw new FailSignInException(responseEntity.getStatusCode().value());
         }

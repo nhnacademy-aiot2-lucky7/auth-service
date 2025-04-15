@@ -6,7 +6,6 @@ import com.nhnacademy.common.exception.UnauthorizedException;
 import com.nhnacademy.token.domain.RefreshToken;
 import com.nhnacademy.token.dto.AccessTokenResponse;
 import com.nhnacademy.token.repository.RefreshTokenRepository;
-import com.nhnacademy.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,9 +40,6 @@ class AuthServiceTest {
 
     @Mock
     RedisTemplate<String, String> redisTemplate;
-
-    @Mock
-    UserRepository userRepository;
 
     @Mock
     ValueOperations<String, String> valueOperations;

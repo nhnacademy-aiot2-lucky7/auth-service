@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
-import com.nhnacademy.common.provider.JwtProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -36,9 +35,6 @@ class AuthControllerTest {
     @MockitoBean
     UserAdapter userAdapter;
 
-    @MockitoBean
-    JwtProvider jwtProvider;
-
     @Test
     @DisplayName("회원가입: 201 성공")
     void signUp_201_success() throws Exception {
@@ -46,7 +42,7 @@ class AuthControllerTest {
         String json = objectMapper.writeValueAsString(request);
 
         when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
-        when(jwtProvider.createAccessToken("auth@email.com")).thenReturn("mock-token");
+//        when(jwtProvider.createAccessToken("auth@email.com")).thenReturn("mock-token");
 
         mockMvc.perform(post("/auth/signUp")
                         .contentType("application/json")
@@ -63,7 +59,7 @@ class AuthControllerTest {
         String json = objectMapper.writeValueAsString(request);
 
         when(userAdapter.loginUser(Mockito.any(UserSignInRequest.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        when(jwtProvider.createAccessToken("user@email.com")).thenReturn("jwt-token");
+//        when(jwtProvider.createAccessToken("user@email.com")).thenReturn("jwt-token");
 
         mockMvc.perform(post("/auth/signIn")
                         .contentType("application/json")
