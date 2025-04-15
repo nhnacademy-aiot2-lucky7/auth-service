@@ -3,7 +3,6 @@ package com.nhnacademy.common.advice;
 import com.nhnacademy.common.exception.CommonHttpException;
 import com.nhnacademy.common.exception.FailSignInException;
 import com.nhnacademy.common.exception.FailSignUpException;
-import com.nhnacademy.common.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +63,7 @@ public class CommonAdvice {
     public ResponseEntity<String> commonExceptionHandler(CommonHttpException e){
         log.warn("CommonHttpException 발생: {}", e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(e.getStatusCode())
                 .body("CommonException: "+e.getMessage());
     }
 
@@ -80,7 +79,7 @@ public class CommonAdvice {
     public ResponseEntity<String> failSignUpExceptionHandler(FailSignUpException ex){
         log.warn("FailSignUpException 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(ex.getStatusCode())
                 .body("FailSignUpException EXCEPTION HANDLER: "+ex.getMessage());
     }
 
@@ -96,24 +95,8 @@ public class CommonAdvice {
     public ResponseEntity<String> failSignInExceptionHandler(FailSignInException ex){
         log.warn("FailSignInException 발생: {}", ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(ex.getStatusCode())
                 .body("FailSignInException EXCEPTION HANDLER: "+ex.getMessage());
-    }
-
-    /**
-     * {@link NotFoundException} 발생 시 처리.
-     * <p>
-     * 리소스를 찾지 못했을 때 404 상태 코드와 메시지를 반환합니다.
-     *
-     * @param ex NotFoundException 예외
-     * @return 404 Not Found 상태와 예외 메시지를 포함한 응답
-     */
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> notFoundExceptionHandler(NotFoundException ex){
-        log.warn("NotFoundException 발생: {}", ex.getMessage());
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body("NOT FOUND EXCEPTION HANDLER: "+ex.getMessage());
     }
 
     /**

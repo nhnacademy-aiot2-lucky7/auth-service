@@ -1,10 +1,13 @@
 package com.nhnacademy.common.exception;
 
+import lombok.Getter;
+
 /**
  * HTTP 상태 코드와 메시지를 함께 포함할 수 있는 사용자 정의 예외 클래스입니다.
  * <p>
  * 주로 HTTP 오류 응답을 처리할 때 사용되며, 상태 코드와 예외 메시지를 함께 전달할 수 있습니다.
  */
+@Getter
 public class CommonHttpException extends RuntimeException {
 
     /**
