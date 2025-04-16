@@ -4,7 +4,6 @@ import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.token.dto.AccessTokenResponse;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,6 +26,9 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final String ACCESS_TOKEN = "accessToken";
+    private static final String STRICT = "Strict";
+
     private final AuthService authService;
 
     @PostMapping("/signUp")
@@ -35,12 +37,12 @@ public class AuthController {
         AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
 
         // 쿠키에 토큰 담기
-        ResponseCookie cookie = ResponseCookie.from("accessToken", accessTokenResponse.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
                 .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
-                .sameSite("Strict")
+                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity
@@ -54,12 +56,12 @@ public class AuthController {
         AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
 
         // 쿠키에 토큰 담기
-        ResponseCookie cookie = ResponseCookie.from("accessToken", accessTokenResponse.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
                 .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
-                .sameSite("Strict")
+                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity
@@ -79,20 +81,39 @@ public class AuthController {
      * @return 로그아웃 완료 메시지를 반환하며, 액세스 토큰 쿠키를 삭제합니다.
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(value = "accessToken") String accessToken) {
+    public ResponseEntity<?> logout(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
         authService.signOut(accessToken);
 
         // accessToken 쿠키 삭제
-        ResponseCookie expiredAccessToken = ResponseCookie.from("accessToken", "")
+        ResponseCookie expiredAccessToken = ResponseCookie.from(ACCESS_TOKEN, "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, expiredAccessToken.toString())
                 .body("로그아웃 되었습니다.");
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<Void> reissueToken(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
+        AccessTokenResponse accessTokenResponse = authService.reissueAccessToken(accessToken);
+
+        // 쿠키에 토큰 담기
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
+                .sameSite(STRICT)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 }

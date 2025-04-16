@@ -34,12 +34,11 @@ class AuthControllerTest {
 
         when(authService.reissueAccessToken(accessToken)).thenReturn(response);
 
-        mockMvc.perform(post("/auth/token/refresh")
+        mockMvc.perform(post("/auth/reissue")
                         .cookie(new Cookie("accessToken", accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.SET_COOKIE))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("accessToken=" + newAccessToken)))
-                .andExpect(content().string("AccessToken 재발급 성공!"));
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("accessToken=" + newAccessToken)));
     }
 
     @Test

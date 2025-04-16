@@ -5,6 +5,7 @@ import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.provider.JwtProvider;
 import com.nhnacademy.token.dto.AccessTokenResponse;
+import com.nhnacademy.token.repository.RefreshTokenRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -30,10 +33,16 @@ class AuthServiceImplTest {
     private UserAdapter userAdapter;
 
     @Mock
-    AccessTokenResponse accessTokenResponse;
+    JwtProvider jwtProvider;
 
     @Mock
-    JwtProvider jwtProvider;
+    RefreshTokenRepository refreshTokenRepository;
+
+    @Mock
+    RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -46,6 +55,8 @@ class AuthServiceImplTest {
 
         userSignUpRequest = new UserSignUpRequest("auth", "auth@email.com", "api12345!");
         userSignInRequest = new UserSignInRequest("auth@email.com", "api12345!");
+
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
@@ -55,15 +66,15 @@ class AuthServiceImplTest {
         ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
 
         Mockito.when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(responseEntity);
-        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("mockToken");
+        Mockito.when(jwtProvider.createAccessToken(userSignUpRequest.getUserEmail())).thenReturn("mockToken");
 
-        accessTokenResponse = authService.signUp(userSignUpRequest);
-        log.info("accessToken: "+accessTokenResponse);
+        AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
+        log.info("accessToken: "+accessTokenResponse.getAccessToken());
 
         assertNotNull(accessTokenResponse);
-        assertEquals("mockToken", accessTokenResponse);
+        assertEquals("mockToken", accessTokenResponse.getAccessToken());
         verify(userAdapter, times(1)).createUser(userSignUpRequest);
-        verify(accessTokenResponse, times(1)).getAccessToken();
+        verify(jwtProvider, times(1)).createAccessToken("auth@email.com");
     }
 
     @Test
@@ -77,21 +88,21 @@ class AuthServiceImplTest {
         assertEquals("SignUp FAIL!!!!", exception.getMessage());
     }
 
-//    @Test
-//    @DisplayName("로그인: 200 성공")
-//    void signIn_200_success() {
-//
-//        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.OK);
-//        when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
-//        when(jwtProvider.createAccessToken(userSignInRequest.getUserEmail())).thenReturn("mockToken");
-//
-//        String token = authService.signIn(userSignInRequest);
-//
-//        assertNotNull(token);
-//        assertEquals("mockToken", token);
-//        verify(userAdapter, times(1)).loginUser(userSignInRequest);
-//        verify(jwtProvider, times(1)).createAccessToken(userSignInRequest.getUserEmail());
-//    }
+    @Test
+    @DisplayName("로그인: 200 성공")
+    void signIn_200_success() {
+
+        ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.OK);
+        when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
+        when(jwtProvider.createAccessToken(userSignInRequest.getUserEmail())).thenReturn("mockToken");
+
+        AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
+
+        assertNotNull(accessTokenResponse);
+        assertEquals("mockToken", accessTokenResponse.getAccessToken());
+        verify(userAdapter, times(1)).loginUser(userSignInRequest);
+        verify(jwtProvider, times(1)).createAccessToken(userSignInRequest.getUserEmail());
+    }
 
     @Test
     @DisplayName("로그인: 400 실패")

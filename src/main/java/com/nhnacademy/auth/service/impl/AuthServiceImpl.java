@@ -66,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
             // 로그인 성공 -> 토큰 생성
             String userId = userSignInRequest.getUserEmail();
 
-            return reissueAccessToken(userId);
+            return createAccessAndRefreshToken(userId);
         } else {
             throw new FailSignInException(responseEntity.getStatusCode().value());
         }
@@ -99,20 +99,18 @@ public class AuthServiceImpl implements AuthService {
         // Redis에 refreshToken 저장 (유효기간 설정)
         redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + userId, refreshToken, 7, TimeUnit.DAYS);  // 예: 7일간 유효
 
-        // DB에 refreshToken 저장
-        RefreshToken existingRefreshToken = refreshTokenRepository.findById(userId).orElse(null);
-        if (existingRefreshToken != null) {
-            // 기존 refreshToken이 있으면 갱신
-            existingRefreshToken.setToken(refreshToken);
-            refreshTokenRepository.save(existingRefreshToken);
-            // 새로운 refreshToken 저장
-            RefreshToken newRefreshToken = new RefreshToken(userId, refreshToken);
-            refreshTokenRepository.save(newRefreshToken);
+        // DB에 refreshToken 저장 또는 갱신
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(userId)
+                .map(existing -> {
+                    existing.setToken(refreshToken);
+                    return existing;
+                })
+                .orElse(new RefreshToken(userId, refreshToken));
 
-            // 생성된 토큰을 반환
-            return new AccessTokenResponse(accessToken, jwtProvider.getRemainingExpiration(accessToken));
-        }
-        return null;
+        refreshTokenRepository.save(refreshTokenEntity);
+
+        // 생성된 토큰을 반환
+        return new AccessTokenResponse(accessToken, jwtProvider.getRemainingExpiration(accessToken));
     }
 
     /**
