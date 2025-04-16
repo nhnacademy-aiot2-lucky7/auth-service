@@ -46,3 +46,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: startup/authServiceStartup.sh
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          AES_SECRET: ${{ secrets.AES_SECRET }}
