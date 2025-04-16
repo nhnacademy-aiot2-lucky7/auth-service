@@ -85,7 +85,7 @@ class AuthServiceImplTest {
         when(userAdapter.createUser(userSignUpRequest)).thenReturn(responseEntity);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signUp(userSignUpRequest));
-        assertEquals("SignUp FAIL!!!!", exception.getMessage());
+        assertEquals("회원가입에 실패하였습니다.", exception.getMessage());
     }
 
     @Test
@@ -112,6 +112,6 @@ class AuthServiceImplTest {
         when(userAdapter.loginUser(userSignInRequest)).thenReturn(responseEntity);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.signIn(userSignInRequest));
-        assertEquals("SignIn FAIL!!!", exception.getMessage());
+        assertEquals("로그인에 실패하였습니다.", exception.getMessage());
     }
 }

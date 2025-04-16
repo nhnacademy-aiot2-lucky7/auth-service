@@ -3,12 +3,15 @@ package com.nhnacademy.auth.controller;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
+import com.nhnacademy.common.exception.FailSignInException;
+import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.token.dto.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -32,8 +35,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signUp")
-    public ResponseEntity<Void> signUp(@RequestBody UserSignUpRequest userSignUpRequest) {
+    public ResponseEntity<Void> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
 
+        if(userSignUpRequest.getUserEmail() == null || userSignUpRequest.getUserName() == null || userSignUpRequest.getUserPassword() == null){
+            throw new FailSignUpException(404, "잘못된 형식으로 입력되었습니다.");
+        }
         AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
 
         // 쿠키에 토큰 담기
@@ -52,7 +58,11 @@ public class AuthController {
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<Void> signIn(@RequestBody UserSignInRequest userSignInRequest){
+    public ResponseEntity<Void> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest){
+
+        if(userSignInRequest.getUserEmail() == null || userSignInRequest.getUserPassword() == null){
+            throw new FailSignInException(404, "잘못된 형식으로 입력되었습니다.");
+        }
         AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
 
         // 쿠키에 토큰 담기

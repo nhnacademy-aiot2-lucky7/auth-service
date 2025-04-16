@@ -7,6 +7,6 @@ public class FailSignUpException extends CommonHttpException{
     }
 
     public FailSignUpException(int statusCode){
-        super(statusCode, "SignUp FAIL!!!!");
+        super(statusCode, "회원가입에 실패하였습니다.");
     }
 }
