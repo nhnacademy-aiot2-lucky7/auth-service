@@ -12,13 +12,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+
+
       - uses: actions/checkout@v3
+
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
+
+            # 1. REDIS, JWT, AES secrets를 환경 변수로 등록
+      - name: Set up secrets as env variables
+        run: |
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GITHUB_ENV
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> $GITHUB_ENV
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "AES_SECRET=${{ secrets.AES_SECRET }}" >> $GITHUB_ENV
+          echo "EUREKA_NAME=${{ secrets.EUREKA_NAME }}" >> $GITHUB_ENV
+          echo "EUREKA_PASSWORD=${{ secrets.EUREKA_PASSWORD }}" >> $GITHUB_ENV
+ 
+             # 2. application.properties 파일 생성 (JAR 빌드 전에!)
+      - name: Generate application.properties
+        run: |
+          mkdir -p ./src/main/resources
+          echo "redis.host=$REDIS_HOST" > ./src/main/resources/application-release.properties
+          echo "redis.port=$REDIS_PORT:6379" >> ./src/main/resources/application-release.properties
+          echo "redis.password=$REDIS_PASSWORD" >> ./src/main/resources/application-release.properties
+          echo "jwt.secret=$JWT_SECRET" >> ./src/main/resources/application-release.properties
+          echo "aes.secret=$AES_SECRET" >> ./src/main/resources/application-release.properties
+          echo "spring.security.user.name=$EUREKA_NAME" >> ./src/main/resources/application-release.properties
+          echo "spring.security.user.password=$EUREKA_PASSWORD" >> ./src/main/resources/application-release.properties
+          
+
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
@@ -46,14 +76,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: startup/authServiceStartup.sh
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          AES_SECRET: ${{ secrets.AES_SECRET }}
-      - name: Set up Redis
-        run:
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GitHUB_ENV
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Test Redis connection
         run:
