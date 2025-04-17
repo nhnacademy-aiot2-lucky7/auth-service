@@ -18,7 +18,7 @@ class AESUtilTest {
 
     @Test
     @DisplayName("암호화/복호화 테스트")
-    void testEncryptAndDecrypt() throws Exception {
+    void testEncryptAndDecrypt() {
         String originalText = "test@nhnacademy.com";
 
         String encrypted = aesUtil.encrypt(originalText);
@@ -33,7 +33,7 @@ class AESUtilTest {
 
     @Test
     @DisplayName("IV 랜덤 확인")
-    void testDifferentIV() throws Exception {
+    void testDifferentIV() {
         String text = "test@nhnacademy.com";
 
         String encrypted1 = aesUtil.encrypt(text);
