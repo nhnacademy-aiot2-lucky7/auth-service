@@ -58,4 +58,16 @@ class JwtProviderTest {
         Assertions.assertEquals("test@nhnacademy.com", jwtProvider.getUserIdFromToken(token));
         Assertions.assertEquals(getExpiredAt, jwtProvider.getExpiredAtFromToken(token));
     }
+
+    @Test
+    @DisplayName("만료 예정 시간 확인")
+    void testGetRemainingExpiration() {
+        String userId = "test@nhnacademy.com";
+        String accessToken = jwtProvider.createAccessToken(userId);
+
+        long remaining = jwtProvider.getRemainingExpiration(accessToken);
+
+        Assertions.assertTrue(remaining > 0);
+        Assertions.assertTrue(remaining <= 60 * 60 * 1000L);
+    }
 }

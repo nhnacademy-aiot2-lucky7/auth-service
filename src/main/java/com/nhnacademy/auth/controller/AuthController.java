@@ -3,8 +3,6 @@ package com.nhnacademy.auth.controller;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
-import com.nhnacademy.common.exception.FailSignInException;
-import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.token.dto.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

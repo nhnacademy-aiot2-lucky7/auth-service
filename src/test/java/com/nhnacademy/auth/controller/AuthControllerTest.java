@@ -256,7 +256,7 @@ class AuthControllerTest {
     void logout_success() throws Exception {
         String accessToken = "AccessToken";
 
-        doNothing().when(authService).deleteAccessAndRefreshToken(accessToken);
+        doNothing().when(authService).signOut(accessToken);
 
         mockMvc.perform(post("/auth/logout")
                         .cookie(new Cookie("accessToken", accessToken)))

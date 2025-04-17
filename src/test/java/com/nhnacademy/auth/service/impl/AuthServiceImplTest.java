@@ -219,7 +219,7 @@ class AuthServiceImplTest {
         when(jwtProvider.getRemainingExpiration(accessToken)).thenReturn( 60 * 1000L);
         when(jwtProvider.getRemainingExpiration(refreshToken)).thenReturn( 60 * 60 * 1000L);
 
-        authService.deleteAccessAndRefreshToken(accessToken);
+        authService.signOut(accessToken);
 
         verify(refreshTokenRepository).delete(any());
         verify(valueOperations).set("blacklist:" + accessToken, "logout", 60 * 1000L, TimeUnit.MILLISECONDS);

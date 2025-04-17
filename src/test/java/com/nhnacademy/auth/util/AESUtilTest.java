@@ -1,5 +1,7 @@
 package com.nhnacademy.auth.util;
 
+import com.nhnacademy.common.exception.AesCryptoException;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest
@@ -40,5 +44,32 @@ class AESUtilTest {
         String encrypted2 = aesUtil.encrypt(text);
 
         Assertions.assertNotEquals(encrypted1, encrypted2);
+    }
+
+    @Test
+    @DisplayName("비밀키가 32바이트가 아닐 때 예외 발생")
+    void testInvalidKey() {
+        Dotenv dotenv = mock(Dotenv.class);
+
+        when(dotenv.get("AES_SECRET")).thenReturn("short-key");
+
+        Assertions.assertThrows(AesCryptoException.class,
+                () -> new AESUtil(dotenv)
+        );
+    }
+
+    @Test
+    @DisplayName("복호화 과정에서 예외 발생")
+    void testDecryptInvalidText() {
+        Dotenv dotenv = mock(Dotenv.class);
+
+        when(dotenv.get("AES_SECRET")).thenReturn("11111111111111111111111111111111");
+
+        aesUtil = new AESUtil(dotenv);
+        String invalidEncrypted = "not-encrypt-text";
+
+        Assertions.assertThrows(AesCryptoException.class,
+                () -> aesUtil.decrypt(invalidEncrypted)
+        );
     }
 }

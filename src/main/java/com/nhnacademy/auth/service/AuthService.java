@@ -11,5 +11,4 @@ public interface AuthService {
     void signOut(String accessToken);
     AccessTokenResponse reissueAccessToken(String accessToken);
     AccessTokenResponse createAccessAndRefreshToken(String userId);
-    void deleteAccessAndRefreshToken(String accessToken);
 }

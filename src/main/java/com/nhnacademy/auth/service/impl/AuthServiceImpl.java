@@ -74,7 +74,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void signOut(String accessToken) {
-        deleteAccessAndRefreshToken(accessToken);
+        String userId = jwtProvider.getUserIdFromToken(accessToken);
+
+        // AccessToken 블랙리스트 등록
+        long expiredAccessTokenTtl = jwtProvider.getRemainingExpiration(accessToken);
+        redisTemplate.opsForValue().set(BLACKLIST_PREFIX + accessToken, LOGOUT_VALUE, expiredAccessTokenTtl, TimeUnit.MILLISECONDS);
+
+        // RefreshToken 꺼내서 블랙리스트 등록
+        RefreshToken refreshToken = refreshTokenRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("해당 아이디의 RefreshToken을 찾을 수 없습니다. userId: " + userId));
+        long refreshTokenTtl = jwtProvider.getRemainingExpiration(refreshToken.getToken());
+        redisTemplate.opsForValue().set(BLACKLIST_PREFIX + refreshToken.getToken(), LOGOUT_VALUE, refreshTokenTtl, TimeUnit.MILLISECONDS);
+
+        // DB에서 RefreshToken 제거
+        refreshTokenRepository.delete(refreshToken);
     }
 
     /**
@@ -154,21 +167,4 @@ public class AuthServiceImpl implements AuthService {
      * @param accessToken 로그아웃할 때 사용할 액세스 토큰
      * @throws NotFoundException DB에서 리프레시 토큰을 찾을 수 없는 경우
      */
-    @Override
-    public void deleteAccessAndRefreshToken(String accessToken) {
-        String userId = jwtProvider.getUserIdFromToken(accessToken);
-
-        // AccessToken 블랙리스트 등록
-        long expiredAccessTokenTtl = jwtProvider.getRemainingExpiration(accessToken);
-        redisTemplate.opsForValue().set(BLACKLIST_PREFIX + accessToken, LOGOUT_VALUE, expiredAccessTokenTtl, TimeUnit.MILLISECONDS);
-
-        // RefreshToken 꺼내서 블랙리스트 등록
-        RefreshToken refreshToken = refreshTokenRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("해당 아이디의 RefreshToken을 찾을 수 없습니다. userId: " + userId));
-        long refreshTokenTtl = jwtProvider.getRemainingExpiration(refreshToken.getToken());
-        redisTemplate.opsForValue().set(BLACKLIST_PREFIX + refreshToken.getToken(), LOGOUT_VALUE, refreshTokenTtl, TimeUnit.MILLISECONDS);
-
-        // DB에서 RefreshToken 제거
-        refreshTokenRepository.delete(refreshToken);
-    }
 }
