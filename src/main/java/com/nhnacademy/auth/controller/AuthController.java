@@ -85,7 +85,7 @@ public class AuthController {
      * @return 로그아웃 완료 메시지를 반환하며, 액세스 토큰 쿠키를 삭제합니다.
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
+    public ResponseEntity<String> logout(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
         authService.signOut(accessToken);
 
         // accessToken 쿠키 삭제

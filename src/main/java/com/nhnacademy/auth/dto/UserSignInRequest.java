@@ -36,7 +36,7 @@ public class UserSignInRequest {
      */
     @JsonProperty("userPassword")
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
+    @Pattern(regexp = "(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
             message = "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.")
     String userPassword;
 

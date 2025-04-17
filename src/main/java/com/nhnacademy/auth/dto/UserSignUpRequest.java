@@ -26,7 +26,7 @@ public class UserSignUpRequest {
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
     @Size(min = 6, max = 20, message = "비밀번호는 6자 이상 20자 이하로 입력해주세요.")
     @Pattern(
-            regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
+            regexp = "(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
             message = "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다."
     )
     private String userPassword;
