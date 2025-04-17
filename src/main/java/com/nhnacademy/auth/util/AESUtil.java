@@ -1,7 +1,7 @@
 package com.nhnacademy.auth.util;
 
 import com.nhnacademy.common.exception.AesCryptoException;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -9,6 +9,7 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Objects;
 
 /**
  * AESUtil 클래스는 AES 알고리즘을 사용하여 데이터를 암호화하고 복호화하는 유틸리티 클래스입니다.
@@ -29,11 +30,12 @@ public class AESUtil {
     /**
      * 생성자에서 AES 키를 초기화합니다.
      *
-     * @param secretKey AES 암호화에 사용할 비밀키
+     *
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
-    public AESUtil(@Value("${aes.secret}") String secretKey) {
-        this.keySpec = getKeySpec(secretKey);
+    public AESUtil(Dotenv dotenv) {
+        String secretKey = dotenv.get("AES_SECRET");
+        this.keySpec = getKeySpec(Objects.requireNonNull(secretKey));
     }
 
     /**

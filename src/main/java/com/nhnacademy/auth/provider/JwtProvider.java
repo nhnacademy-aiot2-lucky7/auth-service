@@ -2,8 +2,8 @@ package com.nhnacademy.auth.provider;
 
 import com.nhnacademy.auth.util.AESUtil;
 import com.nhnacademy.common.exception.UnauthorizedException;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 
@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * JwtProvider 클래스는 JWT(Json Web Token) 생성 및 파싱을 담당하는 서비스입니다.
@@ -31,12 +32,13 @@ public class JwtProvider {
     /**
      * JwtProvider의 생성자입니다.
      *
-     * @param jwtSecretKey JWT 서명에 사용할 비밀 키
+     *
      * @param aesUtil AES 암호화 및 복호화 유틸리티
      */
-    public JwtProvider(@Value("${jwt.secret}") String jwtSecretKey,
+    public JwtProvider(Dotenv dotenv,
                        AESUtil aesUtil) {
-        this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+        String jwtSecretKey = dotenv.get("JWT_SECRET");
+        this.key = Keys.hmacShaKeyFor(Objects.requireNonNull(jwtSecretKey).getBytes(StandardCharsets.UTF_8));
         this.aesUtil = aesUtil;
     }
 

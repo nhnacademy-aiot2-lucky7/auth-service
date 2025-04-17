@@ -49,3 +49,12 @@ jobs:
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           AES_SECRET: ${{ secrets.AES_SECRET }}
+      - name: Set up Redis
+        run:
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GitHUB_ENV
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Test Redis connection
+        run:
+          echo "PING" | redis-cli -h ${{ secrets.REDIS_HOST }} -p ${{ secrets.REDIS_PORT }} -a ${{ secrets.REDIS_PASSWORD }}
