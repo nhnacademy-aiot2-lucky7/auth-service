@@ -37,7 +37,7 @@ jobs:
       - name: Create test .env file
         run: |
           mkdir -p ./src/test/resources
-          echo "REDIS_HOST=localhost" > ./src/test/resources/.env
+          echo "REDIS_HOST=localhost" >> ./src/test/resources/.env
           echo "REDIS_PORT=6379" >> ./src/test/resources/.env
           echo "REDIS_PASSWORD=password123!@#" >> ./src/test/resources/.env
 
