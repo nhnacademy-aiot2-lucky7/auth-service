@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.impl.AuthServiceImpl;
+import com.nhnacademy.common.exception.CommonHttpException;
 import com.nhnacademy.common.exception.FailSignInException;
 import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.token.dto.AccessTokenResponse;
@@ -157,6 +158,21 @@ class AuthControllerTest {
                 )
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().string("Bad Request: userPassword - 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.; "));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패: 400 BAD REQUEST")
+    void signUp_fail_case8() throws Exception{
+        UserSignUpRequest request = new UserSignUpRequest("auth", "user123@email.com", "auth123!!");
+        Mockito.when(authService.signUp(Mockito.any(UserSignUpRequest.class))).thenThrow(new CommonHttpException(400, "commoner"));
+
+        mockMvc.perform(
+                        post("/auth/signUp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("CommonException: commoner"));
     }
 
     @Test
