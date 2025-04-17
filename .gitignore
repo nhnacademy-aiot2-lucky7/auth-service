@@ -13,6 +13,14 @@ target/
 .springBeans
 .sts4-cache
 
+.env
+
+# application-dev.properties 무시
+/src/main/resources/application-dev.properties
+# application-local.properties 무시
+/src/main/resources/application-local.properties
+
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
