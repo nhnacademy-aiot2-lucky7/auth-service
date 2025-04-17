@@ -41,6 +41,9 @@ jobs:
           echo "REDIS_PORT=6379" >> ./src/test/resources/.env
           echo "REDIS_PASSWORD=password123!@#" >> ./src/test/resources/.env
 
+      - name: Set correct file permissions for .env
+        run: chmod 644 ./src/test/resources/.env
+
       # 5. application.properties 파일 생성
       - name: Generate application.properties
         run: |

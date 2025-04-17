@@ -16,6 +16,8 @@ class RedisEnvProviderTest {
                 .load();
 
         RedisEnvProvider provider = new RedisEnvProvider(dotenv);
+        // 환경 변수 출력 예시
+        System.out.println("REDIS_HOST: " + System.getenv("REDIS_HOST"));
 
         assertThat(provider.getRedisHost()).isEqualTo("localhost");
         assertThat(provider.getRedisPassword()).isEqualTo("password123!@#");
