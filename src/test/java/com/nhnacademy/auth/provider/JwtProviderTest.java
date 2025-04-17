@@ -1,6 +1,5 @@
-package com.nhnacademy.common.provider;
+package com.nhnacademy.auth.provider;
 
-import com.nhnacademy.auth.provider.JwtProvider;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
