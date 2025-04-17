@@ -19,8 +19,6 @@ class DotenvConfigTest {
     void dotenvBeanShouldLoad() {
         assertNotNull(dotenv);
 
-        // 테스트용 .env 파일에 이거 넣어두세요:
-        // TEST_KEY=hello123
         String value = dotenv.get("REDIS_HOST");
         assertEquals("s4.java21.net", value);
     }
