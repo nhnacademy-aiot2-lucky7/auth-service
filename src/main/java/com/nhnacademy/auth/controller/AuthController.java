@@ -37,9 +37,6 @@ public class AuthController {
     @PostMapping("/signUp")
     public ResponseEntity<Void> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
 
-        if(userSignUpRequest.getUserEmail() == null || userSignUpRequest.getUserName() == null || userSignUpRequest.getUserPassword() == null){
-            throw new FailSignUpException(404, "잘못된 형식으로 입력되었습니다.");
-        }
         AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
 
         // 쿠키에 토큰 담기
@@ -60,9 +57,6 @@ public class AuthController {
     @PostMapping("/signIn")
     public ResponseEntity<Void> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest){
 
-        if(userSignInRequest.getUserEmail() == null || userSignInRequest.getUserPassword() == null){
-            throw new FailSignInException(404, "잘못된 형식으로 입력되었습니다.");
-        }
         AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
 
         // 쿠키에 토큰 담기

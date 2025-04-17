@@ -25,7 +25,7 @@ public class UserSignInRequest {
      */
     @JsonProperty("userEmail")
     @Email(message = "유효한 이메일 주소를 입력해주세요.")
-    @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
+    @NotBlank(message = "이메일 주소는 필수 입력 항목입니다.")
     String userEmail;
 
     /**
@@ -35,6 +35,7 @@ public class UserSignInRequest {
      * JSON 필드 이름은 "userPassword"입니다.
      */
     @JsonProperty("userPassword")
+    @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
     @Pattern(regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
             message = "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.")
     String userPassword;

@@ -3,7 +3,6 @@ package com.nhnacademy.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
-import com.nhnacademy.auth.service.AuthService;
 import com.nhnacademy.auth.service.impl.AuthServiceImpl;
 import com.nhnacademy.common.exception.FailSignInException;
 import com.nhnacademy.common.exception.FailSignUpException;
@@ -133,8 +132,22 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패: 비밀번호 형식이 틀린 경우")
+    @DisplayName("회원가입 실패: 이름형식이 틀린 경우")
     void signUp_fail_case6() throws Exception{
+        UserSignUpRequest request = new UserSignUpRequest("a", "user123@email.com", "auth12345!");
+
+        mockMvc.perform(
+                        post("/auth/signUp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string("Bad Request: userName - 이름은 2자 이상 20자 이하로 입력해주세요.; "));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패: 비밀번호 형식이 틀린 경우")
+    void signUp_fail_case7() throws Exception{
         UserSignUpRequest request = new UserSignUpRequest("auth", "user123@email.com", "auth12");
 
         mockMvc.perform(
@@ -193,7 +206,7 @@ class AuthControllerTest {
                                 .content(objectMapper.writeValueAsString(request))
                 )
                 .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userEmail - 비밀번호는 필수 입력 항목입니다.; "));
+                .andExpect(content().string("Bad Request: userEmail - 이메일 주소는 필수 입력 항목입니다.; "));
     }
 
     @Test
@@ -207,7 +220,7 @@ class AuthControllerTest {
                                 .content(objectMapper.writeValueAsString(request))
                 )
                 .andExpect(status().is4xxClientError())
-                .andExpect(content().string("FailSignInException EXCEPTION HANDLER: 잘못된 형식으로 입력되었습니다."));
+                .andExpect(content().string("Bad Request: userPassword - 비밀번호는 필수 입력 항목입니다.; "));
     }
 
     @Test
