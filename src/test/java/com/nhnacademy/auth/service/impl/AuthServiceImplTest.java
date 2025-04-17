@@ -4,6 +4,7 @@ import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.provider.JwtProvider;
+import com.nhnacademy.common.exception.NotFoundException;
 import com.nhnacademy.common.exception.UnauthorizedException;
 import com.nhnacademy.token.domain.RefreshToken;
 import com.nhnacademy.token.dto.AccessTokenResponse;
@@ -224,5 +225,17 @@ class AuthServiceImplTest {
         verify(refreshTokenRepository).delete(any());
         verify(valueOperations).set("blacklist:" + accessToken, "logout", 60 * 1000L, TimeUnit.MILLISECONDS);
         verify(valueOperations).set("blacklist:" + refreshToken, "logout", 60 * 60 * 1000L, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    @DisplayName("로그아웃 시 NotFoundException 호출")
+    void signOut(){
+        String accessToken = "accessToken";
+        String userId = "user123";
+
+        when(jwtProvider.getUserIdFromToken(accessToken)).thenReturn(userId);
+        when(refreshTokenRepository.findById(userId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(NotFoundException.class, () -> authService.signOut(accessToken));
     }
 }

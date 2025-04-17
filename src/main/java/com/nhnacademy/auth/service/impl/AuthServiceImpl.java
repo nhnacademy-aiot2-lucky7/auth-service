@@ -160,11 +160,4 @@ public class AuthServiceImpl implements AuthService {
 
         return new AccessTokenResponse(newAccessToken, jwtProvider.getRemainingExpiration(newAccessToken));
     }
-
-    /**
-     * 사용자가 로그아웃할 때, 액세스 토큰과 리프레시 토큰을 블랙리스트에 등록하고 DB에서 리프레시 토큰을 삭제하는 메소드입니다.
-     *
-     * @param accessToken 로그아웃할 때 사용할 액세스 토큰
-     * @throws NotFoundException DB에서 리프레시 토큰을 찾을 수 없는 경우
-     */
 }

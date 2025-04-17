@@ -21,11 +21,4 @@ public class NotFoundException extends CommonHttpException {
   public NotFoundException(String message) {
     super(STATUS_CODE, message);
   }
-
-  /**
-   * 기본 메시지("NOT FOUND EXCEPTION!!!")와 함께 {@link NotFoundException} 예외를 생성합니다.
-   */
-  public NotFoundException(){
-    super(STATUS_CODE, "NOT FOUND EXCEPTION!!!");
-  }
 }
