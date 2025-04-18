@@ -47,7 +47,7 @@ jobs:
 
       # 5. 테스트 생략하고 빌드
       - name: Package without tests
-        run: mvn clean package -DskipTests
+        run: mvn clean package -Dmaven.test.skip=true
 
       # 6. SCP를 통해 서버로 jar 파일 전송
       - name: Upload jar to server
