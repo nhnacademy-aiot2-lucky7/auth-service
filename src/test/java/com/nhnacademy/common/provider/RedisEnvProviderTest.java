@@ -1,10 +1,10 @@
 package com.nhnacademy.common.provider;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.*;
 
 class RedisEnvProviderTest {
     @Test
@@ -17,8 +17,9 @@ class RedisEnvProviderTest {
 
         RedisEnvProvider provider = new RedisEnvProvider(dotenv);
         // 환경 변수 출력 예시
-        assertThat(provider.getRedisHost()).isEqualTo("localhost");
-        assertThat(provider.getRedisPassword()).isEqualTo("password123!@#");
-        assertThat(provider.getRedisPort()).isEqualTo(6379);
+        Assertions.assertEquals("localhost", provider.getRedisHost());
+        Assertions.assertEquals(6379, provider.getRedisPort());
+        Assertions.assertEquals("password123!@#", provider.getRedisPassword());
+
     }
 }
