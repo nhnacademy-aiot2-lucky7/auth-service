@@ -56,6 +56,10 @@ jobs:
           echo "spring.security.user.name=$EUREKA_NAME" >> ./src/main/resources/application-release.properties
           echo "spring.security.user.password=$EUREKA_PASSWORD" >> ./src/main/resources/application-release.properties
 
+      - name: Print .env contents for debugging
+        run: cat ./src/test/resources/.env
+
+
       # 6. 테스트 실행
       - name: Run tests
         run: mvn test
