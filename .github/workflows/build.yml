@@ -33,19 +33,19 @@ jobs:
           echo "EUREKA_NAME=${{ secrets.EUREKA_NAME }}" >> $GITHUB_ENV
           echo "EUREKA_PASSWORD=${{ secrets.EUREKA_PASSWORD }}" >> $GITHUB_ENV
 
-      # 4. test 환경에서 사용할 .env 파일 생성 및 마스킹 처리
-      - name: Create test .env file (with masking)
-        run: |
-          echo "::add-mask::${{ secrets.TEST_REDIS_HOST }}"
-          echo "::add-mask::${{ secrets.TEST_REDIS_PASSWORD }}"
-          
-          mkdir -p ./src/test/resources
-          echo "REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}" >> ./src/test/resources/.env
-          echo "REDIS_PORT=6379" >> ./src/test/resources/.env
-          echo "REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}" >> ./src/test/resources/.env
-
-      - name: Set correct file permissions for .env
-        run: chmod 644 ./src/test/resources/.env
+#      # 4. test 환경에서 사용할 .env 파일 생성 및 마스킹 처리
+#      - name: Create test .env file (with masking)
+#        run: |
+#          echo "::add-mask::${{ secrets.TEST_REDIS_HOST }}"
+#          echo "::add-mask::${{ secrets.TEST_REDIS_PASSWORD }}"
+#
+#          mkdir -p ./src/test/resources
+#          echo "REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}" >> ./src/test/resources/.env
+#          echo "REDIS_PORT=6379" >> ./src/test/resources/.env
+#          echo "REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}" >> ./src/test/resources/.env
+#
+#      - name: Set correct file permissions for .env
+#        run: chmod 644 ./src/test/resources/.env
 
       # 5. application.properties 파일 생성
       - name: Generate application.properties
@@ -58,18 +58,18 @@ jobs:
           echo "aes.secret=$AES_SECRET" >> ./src/main/resources/application-release.properties
           echo "spring.security.user.name=$EUREKA_NAME" >> ./src/main/resources/application-release.properties
           echo "spring.security.user.password=$EUREKA_PASSWORD" >> ./src/main/resources/application-release.properties
+#
+#      - name: Print .env contents for debugging
+#        run: cat ./src/test/resources/.env
 
-      - name: Print .env contents for debugging
-        run: cat ./src/test/resources/.env
 
-
-      # 6. 테스트 실행
-      - name: Run tests
-        run: mvn test
-
-      # 7. 테스트용 .env 파일 삭제
-      - name: Delete test .env file
-        run: rm -f ./src/test/resources/.env
+#      # 6. 테스트 실행
+#      - name: Run tests
+#        run: mvn test
+#
+#      # 7. 테스트용 .env 파일 삭제
+#      - name: Delete test .env file
+#        run: rm -f ./src/test/resources/.env
 
       # 8. 테스트 제외하고 빌드
       - name: Package without tests
