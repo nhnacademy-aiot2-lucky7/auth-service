@@ -37,9 +37,9 @@ jobs:
       - name: Create test .env file
         run: |
           mkdir -p ./src/test/resources
-          echo "REDIS_HOST=localhost" >> ./src/test/resources/.env
-          echo "REDIS_PORT=6379" >> ./src/test/resources/.env
-          echo "REDIS_PASSWORD=password123!@#" >> ./src/test/resources/.env
+          echo "REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}" >> ./src/test/resources/.env
+          echo "REDIS_PORT=${{ secrets.TEST_REDIS_PORT }}" >> ./src/test/resources/.env
+          echo "REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}" >> ./src/test/resources/.env
 
       - name: Set correct file permissions for .env
         run: chmod 644 ./src/test/resources/.env
