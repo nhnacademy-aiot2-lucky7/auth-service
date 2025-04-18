@@ -1,4 +1,4 @@
-name: Build
+name: Build and Deploy
 
 on:
   push:
@@ -33,21 +33,7 @@ jobs:
           echo "EUREKA_NAME=${{ secrets.EUREKA_NAME }}" >> $GITHUB_ENV
           echo "EUREKA_PASSWORD=${{ secrets.EUREKA_PASSWORD }}" >> $GITHUB_ENV
 
-#      # 4. test 환경에서 사용할 .env 파일 생성 및 마스킹 처리
-#      - name: Create test .env file (with masking)
-#        run: |
-#          echo "::add-mask::${{ secrets.TEST_REDIS_HOST }}"
-#          echo "::add-mask::${{ secrets.TEST_REDIS_PASSWORD }}"
-#
-#          mkdir -p ./src/test/resources
-#          echo "REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}" >> ./src/test/resources/.env
-#          echo "REDIS_PORT=6379" >> ./src/test/resources/.env
-#          echo "REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}" >> ./src/test/resources/.env
-#
-#      - name: Set correct file permissions for .env
-#        run: chmod 644 ./src/test/resources/.env
-
-      # 5. application.properties 파일 생성
+      # 4. application.properties 파일 생성
       - name: Generate application.properties
         run: |
           mkdir -p ./src/main/resources
@@ -58,25 +44,13 @@ jobs:
           echo "aes.secret=$AES_SECRET" >> ./src/main/resources/application-release.properties
           echo "spring.security.user.name=$EUREKA_NAME" >> ./src/main/resources/application-release.properties
           echo "spring.security.user.password=$EUREKA_PASSWORD" >> ./src/main/resources/application-release.properties
-#
-#      - name: Print .env contents for debugging
-#        run: cat ./src/test/resources/.env
 
-
-#      # 6. 테스트 실행
-#      - name: Run tests
-#        run: mvn test
-#
-#      # 7. 테스트용 .env 파일 삭제
-#      - name: Delete test .env file
-#        run: rm -f ./src/test/resources/.env
-
-      # 8. 테스트 제외하고 빌드
+      # 5. 테스트 생략하고 빌드
       - name: Package without tests
-        run: mvn package -DskipTests
+        run: mvn clean package -DskipTests
 
-      # 9. SCP를 통해 파일 업로드
-      - name: upload file
+      # 6. SCP를 통해 서버로 jar 파일 전송
+      - name: Upload jar to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_IP }}
@@ -87,8 +61,8 @@ jobs:
           target: "~/"
           rm: false
 
-      # 10. 원격 서버에서 셸 스크립트 실행
-      - name: execute shell script
+      # 7. 원격 서버에서 스크립트 실행
+      - name: Execute startup script on remote server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_IP }}
@@ -97,7 +71,3 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script_stop: true
           script: startup/authServiceStartup.sh
-
-      # 11. Redis 연결 테스트
-      - name: Test Redis connection
-        run: echo "PING" | redis-cli -h ${{ secrets.REDIS_HOST }} -p ${{ secrets.REDIS_PORT }} -a ${{ secrets.REDIS_PASSWORD }}
