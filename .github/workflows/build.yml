@@ -37,6 +37,9 @@ jobs:
       - name: Create test .env file
         run: |
           mkdir -p ./src/test/resources
+          echo "::add-mask::localhost"
+          echo "::add-mask::6379"
+          echo "::add-mask::password123!@#"
           echo "REDIS_HOST=localhost" >> ./src/test/resources/.env
           echo "REDIS_PORT=6379" >> ./src/test/resources/.env
           echo "REDIS_PASSWORD=password123!@#" >> ./src/test/resources/.env
