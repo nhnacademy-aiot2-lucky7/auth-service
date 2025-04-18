@@ -33,16 +33,17 @@ jobs:
           echo "EUREKA_NAME=${{ secrets.EUREKA_NAME }}" >> $GITHUB_ENV
           echo "EUREKA_PASSWORD=${{ secrets.EUREKA_PASSWORD }}" >> $GITHUB_ENV
 
-      # 4. test 환경에서 사용할 .env 파일 생성
-      - name: Create test .env file
+      # 4. test 환경에서 사용할 .env 파일 생성 및 마스킹 처리
+      - name: Create test .env file (with masking)
         run: |
+          echo "::add-mask::${{ secrets.TEST_REDIS_HOST }}"
+          echo "::add-mask::${{ secrets.TEST_REDIS_PORT }}"
+          echo "::add-mask::${{ secrets.TEST_REDIS_PASSWORD }}"
+          
           mkdir -p ./src/test/resources
-          echo "::add-mask::localhost"
-          echo "::add-mask::6379"
-          echo "::add-mask::password123!@#"
-          echo "REDIS_HOST=localhost" >> ./src/test/resources/.env
-          echo "REDIS_PORT=6379" >> ./src/test/resources/.env
-          echo "REDIS_PASSWORD=password123!@#" >> ./src/test/resources/.env
+          echo "REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}" >> ./src/test/resources/.env
+          echo "REDIS_PORT=${{ secrets.TEST_REDIS_PORT }}" >> ./src/test/resources/.env
+          echo "REDIS_PASSWORD=${{ secrets.TEST_REDIS_PASSWORD }}" >> ./src/test/resources/.env
 
       - name: Set correct file permissions for .env
         run: chmod 644 ./src/test/resources/.env
