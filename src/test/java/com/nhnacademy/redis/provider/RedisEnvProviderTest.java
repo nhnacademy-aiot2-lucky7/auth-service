@@ -1,5 +1,6 @@
-package com.nhnacademy.common.provider;
+package com.nhnacademy.redis.provider;
 
+import com.nhnacademy.redis.provider.RedisProvider;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

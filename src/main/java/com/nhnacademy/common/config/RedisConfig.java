@@ -1,6 +1,6 @@
 package com.nhnacademy.common.config;
 
-import com.nhnacademy.common.provider.RedisProvider;
+import com.nhnacademy.redis.provider.RedisProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.nhnacademy.common.provider;
+package com.nhnacademy.redis.provider;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
