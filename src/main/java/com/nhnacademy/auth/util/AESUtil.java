@@ -5,6 +5,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -37,25 +38,14 @@ public class AESUtil {
      *
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
-    public AESUtil() {
+    public AESUtil(Dotenv dotenv, Environment env) {
         log.info("AESUtil 생성자 진입");
-        String secretKey = null;
+        String secretKey = dotenv.get("AES_SECRET");
 
-        try {
-            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-            secretKey = dotenv.get(AES_SECRET);
-            log.info("env success");
-        } catch (Exception ignored) {
-            log.info(".env파일에서 키 추출 실패. properties파일로 넘어감.");
-        }
-
-        if (secretKey == null || secretKey.trim().isBlank()) {
-            secretKey = System.getProperty("aes.secret");
-            log.info("System.getProperty(AES_SECRET): {}", secretKey);
-            if (secretKey == null) {
-                secretKey = System.getenv(AES_SECRET);
-                log.info("System.getenv(AES_SECRET): {}", secretKey);
-            }
+        if (secretKey == null || secretKey.isBlank()) {
+            log.info("Dotenv에서 AES_SECRET 없음 -> properties에서 aes.secret 찾음");
+            secretKey = env.getProperty("aes.secret");
+            log.info("env.getProperty(aes.secret), {}", env.getProperty("aes.secret"));
         }
 
         if (secretKey == null || secretKey.isBlank()) {
@@ -63,7 +53,35 @@ public class AESUtil {
         }
 
         this.keySpec = getKeySpec(secretKey);
+        log.info("AESUtil 초기화 완료");
     }
+//    public AESUtil() {
+//        log.info("AESUtil 생성자 진입");
+//        String secretKey = null;
+//
+//        try {
+//            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+//            secretKey = dotenv.get(AES_SECRET);
+//            log.info("env success");
+//        } catch (Exception ignored) {
+//            log.info(".env파일에서 키 추출 실패. properties파일로 넘어감.");
+//        }
+//
+//        if (secretKey == null || secretKey.trim().isBlank()) {
+//            secretKey = System.getProperty("aes.secret");
+//            log.info("System.getProperty(AES_SECRET): {}", secretKey);
+//            if (secretKey == null) {
+//                secretKey = System.getenv(AES_SECRET);
+//                log.info("System.getenv(AES_SECRET): {}", secretKey);
+//            }
+//        }
+//
+//        if (secretKey == null || secretKey.isBlank()) {
+//            throw new AesCryptoException("AES_SECRET가 설정되지 않았습니다.");
+//        }
+//
+//        this.keySpec = getKeySpec(secretKey);
+//    }
 
     /**
      * 주어진 평문을 AES 알고리즘을 사용하여 암호화합니다.
