@@ -51,10 +51,10 @@ public class AESUtil {
 
         if (secretKey == null || secretKey.trim().isBlank()) {
             secretKey = System.getProperty("aes.secret");
-            log.info("System.getProperty(AES_SECRET)");
+            log.info("System.getProperty(AES_SECRET): {}", secretKey);
             if (secretKey == null) {
                 secretKey = System.getenv(AES_SECRET);
-                log.info("System.getenv(AES_SECRET)");
+                log.info("System.getenv(AES_SECRET): {}", secretKey);
             }
         }
 
