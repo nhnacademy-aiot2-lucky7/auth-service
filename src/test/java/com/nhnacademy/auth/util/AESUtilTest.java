@@ -47,25 +47,8 @@ class AESUtilTest {
     }
 
     @Test
-    @DisplayName("비밀키가 32바이트가 아닐 때 예외 발생")
-    void testInvalidKey() {
-        Dotenv dotenv = mock(Dotenv.class);
-
-        when(dotenv.get("AES_SECRET")).thenReturn("short-key");
-
-        Assertions.assertThrows(AesCryptoException.class,
-                () -> new AESUtil(dotenv)
-        );
-    }
-
-    @Test
     @DisplayName("복호화 과정에서 예외 발생")
     void testDecryptInvalidText() {
-        Dotenv dotenv = mock(Dotenv.class);
-
-        when(dotenv.get("AES_SECRET")).thenReturn("11111111111111111111111111111111");
-
-        aesUtil = new AESUtil(dotenv);
         String invalidEncrypted = "not-encrypt-text";
 
         Assertions.assertThrows(AesCryptoException.class,

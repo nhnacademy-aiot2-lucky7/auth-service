@@ -3,15 +3,17 @@ package com.nhnacademy.auth.provider;
 import com.nhnacademy.auth.util.AESUtil;
 import com.nhnacademy.common.exception.UnauthorizedException;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import io.jsonwebtoken.*;
 
-import java.text.SimpleDateFormat;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * JwtProvider 클래스는 JWT(Json Web Token) 생성 및 파싱을 담당하는 서비스입니다.
@@ -20,10 +22,12 @@ import java.util.Objects;
  * 또한, 토큰의 남은 유효 시간을 계산하는 기능도 제공합니다.
  * </p>
  */
+@Slf4j
 @Component
 public class JwtProvider {
     private final Key key;
     private final AESUtil aesUtil;
+    private static final String JWT_SECRET = "JWT_SECRET";
     // AccessToken 유효시간 = 1시간
     private static final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L;
     // RefreshToken 유효시간 = 일주일
@@ -35,11 +39,31 @@ public class JwtProvider {
      *
      * @param aesUtil AES 암호화 및 복호화 유틸리티
      */
-    public JwtProvider(Dotenv dotenv,
-                       AESUtil aesUtil) {
-        String jwtSecretKey = dotenv.get("JWT_SECRET");
-        this.key = Keys.hmacShaKeyFor(Objects.requireNonNull(jwtSecretKey).getBytes(StandardCharsets.UTF_8));
+    public JwtProvider(AESUtil aesUtil) {
         this.aesUtil = aesUtil;
+
+        String jwtSecretKey = null;
+
+        // 우선 .env에서 시도
+        try {
+            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+            jwtSecretKey = dotenv.get(JWT_SECRET);
+        } catch (Exception ignored) {
+            log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
+        }
+
+        // 환경 변수나 시스템 프로퍼티로 fallback
+        if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
+            jwtSecretKey = System.getProperty(JWT_SECRET);
+            if (jwtSecretKey == null) {
+                jwtSecretKey = System.getenv(JWT_SECRET);
+            }
+        }
+
+        if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
+            throw new UnauthorizedException("JWT_SECRET가 설정되지 않았습니다.");
+        }
+        this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

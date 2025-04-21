@@ -2,6 +2,9 @@ package com.nhnacademy.auth.util;
 
 import com.nhnacademy.common.exception.AesCryptoException;
 import io.github.cdimascio.dotenv.Dotenv;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -18,12 +21,13 @@ import java.util.Objects;
  * GCM 모드는 인증된 암호화를 제공하며, IV(Initialization Vector)와 인증 태그를 포함한 구조로 안전성을 보장합니다.
  * </p>
  */
-
+@Slf4j
 @Component
 public class AESUtil {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int IV_SIZE = 12; // 96비트
     private static final int TAG_BIT_LENGTH = 128; // 인증 태그 16바이트
+    private static final String AES_SECRET = "AES_SECRET";
 
     private final SecretKeySpec keySpec;
 
@@ -33,9 +37,28 @@ public class AESUtil {
      *
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
-    public AESUtil(Dotenv dotenv) {
-        String secretKey = dotenv.get("AES_SECRET");
-        this.keySpec = getKeySpec(Objects.requireNonNull(secretKey));
+    public AESUtil() {
+        String secretKey = null;
+
+        try {
+            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+            secretKey = dotenv.get(AES_SECRET);
+        } catch (Exception ignored) {
+            log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
+        }
+
+        if (secretKey == null || secretKey.isBlank()) {
+            secretKey = System.getProperty(AES_SECRET);
+            if (secretKey == null) {
+                secretKey = System.getenv(AES_SECRET);
+            }
+        }
+
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new AesCryptoException("AES_SECRET가 설정되지 않았습니다.");
+        }
+
+        this.keySpec = getKeySpec(secretKey);
     }
 
     /**
