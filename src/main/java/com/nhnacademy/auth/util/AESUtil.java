@@ -28,7 +28,7 @@ public class AESUtil {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int IV_SIZE = 12; // 96비트
     private static final int TAG_BIT_LENGTH = 128; // 인증 태그 16바이트
-    private static final String AES_SECRET = "AES_SECRET";
+    private static final String AES_SECRET_KEY = "AES_SECRET";
 
     private final SecretKeySpec keySpec;
 
@@ -40,7 +40,7 @@ public class AESUtil {
      */
     public AESUtil(Dotenv dotenv, Environment env) {
         log.info("AESUtil 생성자 진입");
-        String secretKey = dotenv.get("AES_SECRET");
+        String secretKey = dotenv.get(AES_SECRET_KEY);
 
         if (secretKey == null || secretKey.isBlank()) {
             log.info("Dotenv에서 AES_SECRET 없음 -> properties에서 aes.secret 찾음");
@@ -55,33 +55,6 @@ public class AESUtil {
         this.keySpec = getKeySpec(secretKey);
         log.info("AESUtil 초기화 완료");
     }
-//    public AESUtil() {
-//        log.info("AESUtil 생성자 진입");
-//        String secretKey = null;
-//
-//        try {
-//            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-//            secretKey = dotenv.get(AES_SECRET);
-//            log.info("env success");
-//        } catch (Exception ignored) {
-//            log.info(".env파일에서 키 추출 실패. properties파일로 넘어감.");
-//        }
-//
-//        if (secretKey == null || secretKey.trim().isBlank()) {
-//            secretKey = System.getProperty("aes.secret");
-//            log.info("System.getProperty(AES_SECRET): {}", secretKey);
-//            if (secretKey == null) {
-//                secretKey = System.getenv(AES_SECRET);
-//                log.info("System.getenv(AES_SECRET): {}", secretKey);
-//            }
-//        }
-//
-//        if (secretKey == null || secretKey.isBlank()) {
-//            throw new AesCryptoException("AES_SECRET가 설정되지 않았습니다.");
-//        }
-//
-//        this.keySpec = getKeySpec(secretKey);
-//    }
 
     /**
      * 주어진 평문을 AES 알고리즘을 사용하여 암호화합니다.

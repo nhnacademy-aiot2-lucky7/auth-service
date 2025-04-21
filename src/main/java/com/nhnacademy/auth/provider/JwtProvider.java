@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -39,31 +40,22 @@ public class JwtProvider {
      *
      * @param aesUtil AES 암호화 및 복호화 유틸리티
      */
-    public JwtProvider(AESUtil aesUtil) {
+    public JwtProvider(Dotenv dotenv, Environment env, AESUtil aesUtil) {
+        log.info("JwtProvider 생성자 진입");
         this.aesUtil = aesUtil;
+        String jwtSecretKey = dotenv.get(JWT_SECRET_KEY);
 
-        String jwtSecretKey = null;
-
-        // 우선 .env에서 시도
-        try {
-            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-            jwtSecretKey = dotenv.get(JWT_SECRET_KEY);
-        } catch (Exception ignored) {
-            log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
-        }
-
-        // 환경 변수나 시스템 프로퍼티로 fallback
         if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
-            jwtSecretKey = System.getProperty("jwt.secret");
-            if (jwtSecretKey == null) {
-                jwtSecretKey = System.getenv(JWT_SECRET_KEY);
-            }
+            log.info("Dotenv에서 JWT_SECRET 없음 -> properties에서 jwt.secret 찾음");
+            jwtSecretKey = env.getProperty("jwt.secret");
+            log.info("env.getProperty(jwt.secret), {}", env.getProperty("jwt.secret"));
         }
 
         if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
             throw new UnauthorizedException("JWT_SECRET가 설정되지 않았습니다.");
         }
         this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+        log.info("JwtProvider 초기화 완료");
     }
 
     /**
