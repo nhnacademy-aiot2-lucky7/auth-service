@@ -39,13 +39,10 @@ public class AESUtil {
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
     public AESUtil(Dotenv dotenv, Environment env) {
-        log.info("AESUtil 생성자 진입");
         String secretKey = dotenv.get(AES_SECRET_KEY);
 
         if (secretKey == null || secretKey.isBlank()) {
-            log.info("Dotenv에서 AES_SECRET 없음 -> properties에서 aes.secret 찾음");
             secretKey = env.getProperty("aes.secret");
-            log.info("env.getProperty(aes.secret), {}", env.getProperty("aes.secret"));
         }
 
         if (secretKey == null || secretKey.isBlank()) {
@@ -53,7 +50,6 @@ public class AESUtil {
         }
 
         this.keySpec = getKeySpec(secretKey);
-        log.info("AESUtil 초기화 완료");
     }
 
     /**

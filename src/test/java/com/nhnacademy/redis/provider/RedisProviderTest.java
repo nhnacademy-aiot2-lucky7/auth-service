@@ -1,6 +1,5 @@
 package com.nhnacademy.redis.provider;
 
-import com.nhnacademy.redis.provider.RedisProvider;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -9,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 @SpringBootTest
-class RedisEnvProviderTest {
+class RedisProviderTest {
 
     @Autowired
     private Environment env;
