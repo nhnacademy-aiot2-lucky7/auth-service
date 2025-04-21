@@ -43,14 +43,17 @@ public class AESUtil {
         try {
             Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
             secretKey = dotenv.get(AES_SECRET);
+            log.debug("env success");
         } catch (Exception ignored) {
             log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
         }
 
-        if (secretKey == null || secretKey.isBlank()) {
+        if (secretKey == null || secretKey.trim().isBlank()) {
             secretKey = System.getProperty(AES_SECRET);
+            log.debug("System.getProperty(AES_SECRET)");
             if (secretKey == null) {
                 secretKey = System.getenv(AES_SECRET);
+                log.debug("System.getenv(AES_SECRET)");
             }
         }
 
