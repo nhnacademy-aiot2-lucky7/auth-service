@@ -1,6 +1,6 @@
 package com.nhnacademy.common.config;
 
-import com.nhnacademy.common.provider.RedisEnvProvider;
+import com.nhnacademy.common.provider.RedisProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +18,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @RequiredArgsConstructor
 public class RedisConfig {
 
-    private final RedisEnvProvider redisEnvProvider;
+    private final RedisProvider redisEnvProvider;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
