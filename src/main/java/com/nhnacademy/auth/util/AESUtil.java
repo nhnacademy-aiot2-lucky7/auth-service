@@ -38,6 +38,7 @@ public class AESUtil {
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
     public AESUtil() {
+        log.debug("AESUtil 생성자 진입");
         String secretKey = null;
 
         try {
