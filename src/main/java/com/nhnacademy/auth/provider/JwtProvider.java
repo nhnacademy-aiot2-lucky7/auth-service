@@ -54,7 +54,7 @@ public class JwtProvider {
 
         // 환경 변수나 시스템 프로퍼티로 fallback
         if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
-            jwtSecretKey = System.getProperty(JWT_SECRET_KEY);
+            jwtSecretKey = System.getProperty("jwt.secret");
             if (jwtSecretKey == null) {
                 jwtSecretKey = System.getenv(JWT_SECRET_KEY);
             }
