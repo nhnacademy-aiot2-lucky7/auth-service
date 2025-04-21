@@ -38,23 +38,23 @@ public class AESUtil {
      * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
      */
     public AESUtil() {
-        log.debug("AESUtil 생성자 진입");
+        log.info("AESUtil 생성자 진입");
         String secretKey = null;
 
         try {
             Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
             secretKey = dotenv.get(AES_SECRET);
-            log.debug("env success");
+            log.info("env success");
         } catch (Exception ignored) {
-            log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
+            log.info(".env파일에서 키 추출 실패. properties파일로 넘어감.");
         }
 
         if (secretKey == null || secretKey.trim().isBlank()) {
             secretKey = System.getProperty("aes.secret");
-            log.debug("System.getProperty(AES_SECRET)");
+            log.info("System.getProperty(AES_SECRET)");
             if (secretKey == null) {
                 secretKey = System.getenv(AES_SECRET);
-                log.debug("System.getenv(AES_SECRET)");
+                log.info("System.getenv(AES_SECRET)");
             }
         }
 
