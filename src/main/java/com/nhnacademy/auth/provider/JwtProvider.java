@@ -27,7 +27,7 @@ import java.util.Date;
 public class JwtProvider {
     private final Key key;
     private final AESUtil aesUtil;
-    private static final String JWT_SECRET = "JWT_SECRET";
+    private static final String JWT_SECRET_KEY = "JWT_SECRET";
     // AccessToken 유효시간 = 1시간
     private static final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L;
     // RefreshToken 유효시간 = 일주일
@@ -47,16 +47,16 @@ public class JwtProvider {
         // 우선 .env에서 시도
         try {
             Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-            jwtSecretKey = dotenv.get(JWT_SECRET);
+            jwtSecretKey = dotenv.get(JWT_SECRET_KEY);
         } catch (Exception ignored) {
             log.debug(".env파일에서 키 추출 실패. properties파일로 넘어감.");
         }
 
         // 환경 변수나 시스템 프로퍼티로 fallback
         if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
-            jwtSecretKey = System.getProperty(JWT_SECRET);
+            jwtSecretKey = System.getProperty(JWT_SECRET_KEY);
             if (jwtSecretKey == null) {
-                jwtSecretKey = System.getenv(JWT_SECRET);
+                jwtSecretKey = System.getenv(JWT_SECRET_KEY);
             }
         }
 
