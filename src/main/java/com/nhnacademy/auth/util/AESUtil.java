@@ -2,9 +2,7 @@ package com.nhnacademy.auth.util;
 
 import com.nhnacademy.common.exception.AesCryptoException;
 import io.github.cdimascio.dotenv.Dotenv;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +11,17 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Objects;
 
 /**
  * AESUtil 클래스는 AES 알고리즘을 사용하여 데이터를 암호화하고 복호화하는 유틸리티 클래스입니다.
  * <p>
  * 이 클래스는 GCM 모드에서 AES 알고리즘을 사용하여 안전한 암호화 및 복호화를 제공합니다.
  * GCM 모드는 인증된 암호화를 제공하며, IV(Initialization Vector)와 인증 태그를 포함한 구조로 안전성을 보장합니다.
+ * </p>
+ *
+ * <p>
+ * 비밀키는 환경 변수(Dotenv 또는 Spring Environment)를 통해 로드되며, AES-256 암호화를 위해 반드시 32바이트(256비트)의 길이를 가져야 합니다.
+ * 암호화된 결과는 IV와 암호문을 결합한 후 Base64로 인코딩되어 반환됩니다.
  * </p>
  */
 @Slf4j
@@ -34,9 +36,13 @@ public class AESUtil {
 
     /**
      * 생성자에서 AES 키를 초기화합니다.
+     * <p>
+     * 환경 변수(Dotenv 또는 Spring Environment)에서 AES 비밀키를 로드하며, 키의 길이는 32바이트(256비트)여야 합니다.
+     * </p>
      *
-     *
-     * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외를 던짐
+     * @param dotenv 환경 변수 로드를 위한 Dotenv 객체
+     * @param env    Spring 환경 설정에서 값을 로드하는 Environment 객체
+     * @throws AesCryptoException 비밀키가 256비트(32바이트)가 아닌 경우 예외가 발생합니다.
      */
     public AESUtil(Dotenv dotenv, Environment env) {
         String secretKey = dotenv.get(AES_SECRET_KEY);
@@ -62,7 +68,6 @@ public class AESUtil {
      * @return 암호화된 텍스트 (Base64 인코딩된 문자열)
      * @throws AesCryptoException 암호화 과정에서 발생할 수 있는 예외
      */
-
     public String encrypt(String plainText) {
         try {
             byte[] iv = generateRandomIV();
@@ -92,7 +97,6 @@ public class AESUtil {
      * @return 복호화된 평문
      * @throws AesCryptoException 복호화 과정에서 발생할 수 있는 예외
      */
-
     public String decrypt(String encryptedText) {
         try {
             byte[] decoded = Base64.getDecoder().decode(encryptedText);
@@ -125,7 +129,6 @@ public class AESUtil {
      * @return SecretKeySpec 객체
      * @throws AesCryptoException 비밀키 길이가 256비트(32바이트)가 아닌 경우 예외 발생
      */
-
     private SecretKeySpec getKeySpec(String secretKey) {
         byte[] keyBytes = secretKey.getBytes();
         if (keyBytes.length != 32) {
@@ -142,7 +145,6 @@ public class AESUtil {
      *
      * @return 생성된 IV (96비트)
      */
-
     private byte[] generateRandomIV() {
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);

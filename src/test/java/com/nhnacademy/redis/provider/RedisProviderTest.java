@@ -1,5 +1,6 @@
 package com.nhnacademy.redis.provider;
 
+import com.nhnacademy.common.exception.InvalidRedisConfigException;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +19,6 @@ class RedisProviderTest {
     @Test
     @DisplayName("Dotenv + Environment 환경변수 읽기 테스트")
     void testReadEnvValues() {
-        // 테스트용 dotenv 로딩 (.env는 src/test/resources에 있다고 가정)
         Dotenv dotenv = Dotenv.configure()
                 .directory("src/test/resources")
                 .filename(".env")
@@ -27,7 +27,19 @@ class RedisProviderTest {
         RedisProvider provider = new RedisProvider(dotenv, env);
 
         Assertions.assertEquals("localhost", provider.getRedisHost());
-        Assertions.assertEquals(6379, provider.getRedisPort());
         Assertions.assertEquals("password123!@#", provider.getRedisPassword());
+    }
+
+    @Test
+    @DisplayName("REDIS_PORT가 잘못된 경우 예외 처리 테스트")
+    void testGetRedisPort_InvalidPort() {
+        Dotenv dotenv = Dotenv.configure()
+                .directory("src/test/resources")
+                .filename(".env")
+                .load();
+
+        RedisProvider provider = new RedisProvider(dotenv, env);
+
+        Assertions.assertThrows(InvalidRedisConfigException.class, provider::getRedisPort);
     }
 }

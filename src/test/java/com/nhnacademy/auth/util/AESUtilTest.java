@@ -30,7 +30,7 @@ class AESUtilTest {
 
         when(dotenv.get("AES_SECRET")).thenReturn("this-is-my-aes-Secret-Key-123123");
 
-        AESUtil aesUtil = new AESUtil(dotenv, env);
+        aesUtil = new AESUtil(dotenv, env);
 
         Assertions.assertNotNull(aesUtil);
     }
@@ -44,7 +44,7 @@ class AESUtilTest {
         when(dotenv.get("AES_SECRET")).thenReturn(null);
         when(env.getProperty("aes.secret")).thenReturn("this-is-my-aes-Secret-Key-123123");
 
-        AESUtil aesUtil = new AESUtil(dotenv, env);
+        aesUtil = new AESUtil(dotenv, env);
 
         Assertions.assertNotNull(aesUtil);
     }
