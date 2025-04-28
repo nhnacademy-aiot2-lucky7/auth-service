@@ -1,9 +1,11 @@
 package com.nhnacademy.auth.controller;
 
+import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.AuthService;
-import com.nhnacademy.token.dto.AccessTokenResponse;
+import com.nhnacademy.common.exception.FailSignUpException;
+import com.nhnacademy.token.provider.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,8 +13,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Duration;
 
 /**
  * AuthController 클래스는 인증 관련 API 요청을 처리하는 컨트롤러입니다.
@@ -31,38 +31,33 @@ public class AuthController {
     private static final String STRICT = "Strict";
 
     private final AuthService authService;
+    private final JwtProvider jwtProvider;
+    private final UserAdapter userAdapter;
 
     @PostMapping("/signUp")
     public ResponseEntity<Void> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
+        ResponseEntity<Void> responseEntity = userAdapter.createUser(userSignUpRequest);
 
-        AccessTokenResponse accessTokenResponse = authService.signUp(userSignUpRequest);
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            throw new FailSignUpException(responseEntity.getStatusCode().value());
+        }
 
-        // 쿠키에 토큰 담기
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
-                .sameSite(STRICT)
-                .build();
+        UserSignInRequest userSignInRequest = new UserSignInRequest(userSignUpRequest.getUserEmail(), userSignUpRequest.getUserPassword());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return signIn(userSignInRequest);
     }
 
     @PostMapping("/signIn")
-    public ResponseEntity<Void> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest){
+    public ResponseEntity<Void> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest) {
 
-        AccessTokenResponse accessTokenResponse = authService.signIn(userSignInRequest);
+        String accessToken = authService.signIn(userSignInRequest);
 
         // 쿠키에 토큰 담기
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
+                .maxAge(jwtProvider.getRemainingExpiration(accessToken))
                 .sameSite(STRICT)
                 .build();
 
@@ -102,14 +97,14 @@ public class AuthController {
 
     @PostMapping("/reissue")
     public ResponseEntity<Void> reissueToken(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
-        AccessTokenResponse accessTokenResponse = authService.reissueAccessToken(accessToken);
+        String newAccessToken = authService.reissueAccessToken(accessToken);
 
         // 쿠키에 토큰 담기
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessTokenResponse.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, newAccessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(Duration.ofMillis(accessTokenResponse.getTtl()))
+                .maxAge(jwtProvider.getRemainingExpiration(newAccessToken))
                 .sameSite(STRICT)
                 .build();
 

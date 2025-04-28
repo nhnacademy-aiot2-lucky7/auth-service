@@ -27,11 +27,9 @@ public class DotenvConfig {
      */
     @Bean
     public Dotenv dotenv() {
-        Dotenv dotenv = Dotenv.configure()
+        return Dotenv.configure()
                 .filename(".env")
                 .ignoreIfMissing()
                 .load();
-        log.info("Loaded .env values: {}", dotenv.entries());
-        return dotenv;
     }
 }

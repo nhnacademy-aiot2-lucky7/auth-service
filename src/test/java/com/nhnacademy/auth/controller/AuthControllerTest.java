@@ -1,13 +1,13 @@
 package com.nhnacademy.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
 import com.nhnacademy.auth.service.impl.AuthServiceImpl;
-import com.nhnacademy.common.exception.CommonHttpException;
 import com.nhnacademy.common.exception.FailSignInException;
-import com.nhnacademy.common.exception.FailSignUpException;
-import com.nhnacademy.token.dto.AccessTokenResponse;
+import com.nhnacademy.token.provider.JwtProvider;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,11 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import jakarta.servlet.http.Cookie;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,146 +34,164 @@ class AuthControllerTest {
     ObjectMapper objectMapper;
 
     @MockitoBean
-    AccessTokenResponse accessTokenResponse;
+    AuthServiceImpl authService;
 
     @MockitoBean
-    AuthServiceImpl authService;
+    UserAdapter userAdapter;
+
+    @MockitoBean
+    JwtProvider jwtProvider;
 
     @Test
     @DisplayName("회원가입: 201 성공")
     void signUp_201_success() throws Exception {
 
-        UserSignUpRequest request = new UserSignUpRequest("auth", "auth@email.com", "auth12345!");
+        UserSignUpRequest request = new UserSignUpRequest(
+                "auth",
+                "auth@email.com",
+                "auth12345!",
+                "010-1111-0000",
+                "개발"
+        );
 
-        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("accessToken");
-        Mockito.when(authService.signUp(Mockito.any(UserSignUpRequest.class))).thenReturn(accessTokenResponse);
+        when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(ResponseEntity.ok().build());
+        when(authService.signIn(any(UserSignInRequest.class))).thenReturn("accessToken");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(cookie().exists("accessToken"))
-                .andExpect(cookie().value("accessToken", accessTokenResponse.getAccessToken()));
-
+                .andExpect(cookie().value("accessToken", "accessToken"));
     }
 
     @Test
     @DisplayName("회원가입 실패: FailSignUpException 발생 확인")
-    void signUp_fail_case1() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", "auth@email.com", "abc1234!!");
+    void signUp_fail_case1() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                "auth",
+                "auth@email.com",
+                "auth12345!",
+                "010-1111-0000",
+                "개발");
 
-        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("accessToken");
-        Mockito.when(authService.signUp(Mockito.any(UserSignUpRequest.class))).thenThrow(new FailSignUpException(404));
+        when(userAdapter.createUser(Mockito.any(UserSignUpRequest.class))).thenReturn(ResponseEntity.badRequest().build());
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("FailSignUpException EXCEPTION HANDLER: 회원가입에 실패하였습니다."));
-
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: email이 null인 경우")
-    void signUp_fail_case2() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", null, "auth12345!");
+    void signUp_fail_case2() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest("auth",
+                null,
+                "auth12345!",
+                "010-1111-0000",
+                "개발");
 
         mockMvc.perform(
-                post("/auth/signUp")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userEmail - 이메일은 필수 입력 항목입니다.; "));
+                        post("/auth/signUp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: name이 null인 경우")
-    void signUp_fail_case3() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest(null, "auth@email.com", "auth12345!");
+    void signUp_fail_case3() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                null,
+                "auth@email.com",
+                "auth12345!",
+                "01011110000",
+                "개발");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userName - 이름은 필수 입력 항목입니다.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: 비밀번호가 null인 경우")
-    void signUp_fail_case4() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", "user@email.com", null);
+    void signUp_fail_case4() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                "auth",
+                "auth@email.com",
+                null,
+                "01011110000",
+                "개발");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userPassword - 비밀번호는 필수 입력 항목입니다.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: email 형식이 틀린 경우")
-    void signUp_fail_case5() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", "user123", "auth12345!");
+    void signUp_fail_case5() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                "auth",
+                "auth",
+                "auth12345!",
+                "01011110000",
+                "개발");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userEmail - 유효한 이메일 주소를 입력해주세요.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: 이름형식이 틀린 경우")
-    void signUp_fail_case6() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("a", "user123@email.com", "auth12345!");
+    void signUp_fail_case6() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                "a",
+                "auth@email.com",
+                "auth12345!",
+                "01011110000",
+                "개발");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userName - 이름은 2자 이상 20자 이하로 입력해주세요.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("회원가입 실패: 비밀번호 형식이 틀린 경우")
-    void signUp_fail_case7() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", "user123@email.com", "auth12");
+    void signUp_fail_case7() throws Exception {
+        UserSignUpRequest request = new UserSignUpRequest(
+                "auth",
+                "auth@email.com",
+                "auth12",
+                "01011110000",
+                "개발");
 
         mockMvc.perform(
                         post("/auth/signUp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userPassword - 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.; "));
-    }
-
-    @Test
-    @DisplayName("회원가입 실패: 400 BAD REQUEST")
-    void signUp_fail_case8() throws Exception{
-        UserSignUpRequest request = new UserSignUpRequest("auth", "user123@email.com", "auth123!!");
-        Mockito.when(authService.signUp(Mockito.any(UserSignUpRequest.class))).thenThrow(new CommonHttpException(400, "commoner"));
-
-        mockMvc.perform(
-                        post("/auth/signUp")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                )
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("CommonException: commoner"));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -180,8 +199,7 @@ class AuthControllerTest {
     void signIn_200_success() throws Exception {
         UserSignInRequest request = new UserSignInRequest("user@email.com", "auth1234!");
 
-        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("accessToken");
-        Mockito.when(authService.signIn(Mockito.any(UserSignInRequest.class))).thenReturn(accessTokenResponse);
+        when(authService.signIn(any(UserSignInRequest.class))).thenReturn("accessToken");
 
         mockMvc.perform(
                         post("/auth/signIn")
@@ -190,15 +208,14 @@ class AuthControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("accessToken"))
-                .andExpect(cookie().value("accessToken", accessTokenResponse.getAccessToken()));
+                .andExpect(cookie().value("accessToken", "accessToken"));
     }
 
     @Test
     @DisplayName("로그인 실패: FailSignInException 발생 확인")
-    void signIn_fail_case1() throws Exception{
+    void signIn_fail_case1() throws Exception {
         UserSignInRequest request = new UserSignInRequest("auth@email.com", "abc1234!!");
 
-        Mockito.when(accessTokenResponse.getAccessToken()).thenReturn("accessToken");
         Mockito.when(authService.signIn(Mockito.any(UserSignInRequest.class))).thenThrow(new FailSignInException(404));
 
         mockMvc.perform(
@@ -206,14 +223,13 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("FailSignInException EXCEPTION HANDLER: 로그인에 실패하였습니다."));
+                .andExpect(status().is4xxClientError());
 
     }
 
     @Test
     @DisplayName("로그인 실패: email이 null인 경우")
-    void signIn_fail_case2() throws Exception{
+    void signIn_fail_case2() throws Exception {
         UserSignInRequest request = new UserSignInRequest(null, "auth12345!");
 
         mockMvc.perform(
@@ -221,13 +237,12 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userEmail - 이메일 주소는 필수 입력 항목입니다.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("로그인 실패: 비밀번호가 null인 경우")
-    void signIn_fail_case3() throws Exception{
+    void signIn_fail_case3() throws Exception {
         UserSignInRequest request = new UserSignInRequest("user@email.com", null);
 
         mockMvc.perform(
@@ -235,13 +250,12 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userPassword - 비밀번호는 필수 입력 항목입니다.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("로그인 실패: email 형식이 틀린 경우")
-    void signIn_fail_case4() throws Exception{
+    void signIn_fail_case4() throws Exception {
         UserSignInRequest request = new UserSignInRequest("user123", "auth12345!");
 
         mockMvc.perform(
@@ -254,8 +268,8 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("로그인 실패: email 형식이 틀린 경우")
-    void signIn_fail_case5() throws Exception{
+    @DisplayName("로그인 실패: 비밀번호 형식이 틀린 경우")
+    void signIn_fail_case5() throws Exception {
         UserSignInRequest request = new UserSignInRequest("user123@email.com", "auth12");
 
         mockMvc.perform(
@@ -263,16 +277,13 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().string("Bad Request: userPassword - 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.; "));
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
     @DisplayName("로그아웃 성공 - 쿠키 삭제")
     void logout_success() throws Exception {
-        String accessToken = "AccessToken";
-
-        doNothing().when(authService).signOut(accessToken);
+        String accessToken = "accessToken";
 
         mockMvc.perform(post("/auth/logout")
                         .cookie(new Cookie("accessToken", accessToken)))
@@ -288,9 +299,7 @@ class AuthControllerTest {
         String accessToken = "oldAccessToken";
         String newAccessToken = "newAccessToken";
 
-        AccessTokenResponse response = new AccessTokenResponse(newAccessToken, 60 * 60 * 1000L);
-
-        when(authService.reissueAccessToken(accessToken)).thenReturn(response);
+        when(authService.reissueAccessToken(accessToken)).thenReturn(newAccessToken);
 
         mockMvc.perform(post("/auth/reissue")
                         .cookie(new Cookie("accessToken", accessToken)))

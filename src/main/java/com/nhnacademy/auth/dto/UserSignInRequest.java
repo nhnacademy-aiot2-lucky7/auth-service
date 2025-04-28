@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,17 +15,16 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
-@EqualsAndHashCode
+@AllArgsConstructor
 public class UserSignInRequest {
-
     /**
      * 사용자 이메일
      * <p>
      * 공백이 아닌 문자열이어야 하며, JSON 필드 이름은 "userEmail"입니다.
      */
+    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
     @JsonProperty("userEmail")
     @Email(message = "유효한 이메일 주소를 입력해주세요.")
-    @NotBlank(message = "이메일 주소는 필수 입력 항목입니다.")
     String userEmail;
 
     /**
@@ -36,12 +35,6 @@ public class UserSignInRequest {
      */
     @JsonProperty("userPassword")
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
-    @Pattern(regexp = "(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}",
-            message = "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.")
+    @Pattern(regexp = "(?=.*\\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*]).{6,20}")
     String userPassword;
-
-    public UserSignInRequest(String userEmail, String userPassword) {
-        this.userEmail = userEmail;
-        this.userPassword = userPassword;
-    }
 }

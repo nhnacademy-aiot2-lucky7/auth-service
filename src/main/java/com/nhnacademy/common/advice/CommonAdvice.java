@@ -3,6 +3,7 @@ package com.nhnacademy.common.advice;
 import com.nhnacademy.common.exception.CommonHttpException;
 import com.nhnacademy.common.exception.FailSignInException;
 import com.nhnacademy.common.exception.FailSignUpException;
+import com.nhnacademy.token.exception.TokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +35,12 @@ public class CommonAdvice {
      * @return 400 Bad Request 상태와 상세 에러 메시지를 포함한 응답
      */
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<String> bindExceptionHandler(BindException e){
+    public ResponseEntity<String> bindExceptionHandler(BindException e) {
         log.warn("BindException 발생: {}", e.getMessage());
 
         StringBuilder errorMessage = new StringBuilder("Bad Request: ");
 
-        for(FieldError fieldError: e.getFieldErrors()){
+        for (FieldError fieldError : e.getFieldErrors()) {
             errorMessage.append(fieldError.getField())
                     .append(" - ")
                     .append(fieldError.getDefaultMessage())
@@ -60,58 +61,19 @@ public class CommonAdvice {
      * @return 400 Bad Request 상태와 예외 메시지를 포함한 응답
      */
     @ExceptionHandler(CommonHttpException.class)
-    public ResponseEntity<String> commonExceptionHandler(CommonHttpException e){
+    public ResponseEntity<String> commonExceptionHandler(CommonHttpException e) {
         log.warn("CommonHttpException 발생: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getStatusCode())
-                .body("CommonException: "+e.getMessage());
+                .body("CommonException: " + e.getMessage());
     }
 
-    /**
-     * {@link FailSignUpException} 발생 시 처리.
-     * <p>
-     * 회원가입 실패 예외 발생 시 예외 내부의 상태 코드와 메시지를 기반으로 응답합니다.
-     *
-     * @param ex 회원가입 실패 예외
-     * @return 예외에 정의된 HTTP 상태 코드와 메시지를 포함한 응답
-     */
-    @ExceptionHandler(FailSignUpException.class)
-    public ResponseEntity<String> failSignUpExceptionHandler(FailSignUpException ex){
-        log.warn("FailSignUpException 발생: {}", ex.getMessage());
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<String> tokenExceptionHandler(TokenException e) {
+        log.warn("TokenException 발생: {}", e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body("FailSignUpException EXCEPTION HANDLER: "+ex.getMessage());
-    }
-
-    /**
-     * {@link FailSignInException} 발생 시 처리.
-     * <p>
-     * 로그인 실패 예외 발생 시 예외 내부의 상태 코드와 메시지를 기반으로 응답합니다.
-     *
-     * @param ex 로그인 실패 예외
-     * @return 예외에 정의된 HTTP 상태 코드와 메시지를 포함한 응답
-     */
-    @ExceptionHandler(FailSignInException.class)
-    public ResponseEntity<String> failSignInExceptionHandler(FailSignInException ex){
-        log.warn("FailSignInException 발생: {}", ex.getMessage());
-        return ResponseEntity
-                .status(ex.getStatusCode())
-                .body("FailSignInException EXCEPTION HANDLER: "+ex.getMessage());
-    }
-
-    /**
-     * 처리되지 않은 일반 {@link Exception}을 포괄적으로 처리합니다.
-     * <p>
-     * 대부분의 예외 상황에 대해 500 상태 코드와 메시지를 반환합니다.
-     *
-     * @param ex 발생한 일반 예외
-     * @return 500 Internal Server Error 상태와 예외 메시지를 포함한 응답
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception ex){
-        log.warn("Exception 발생: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Server Error: " + ex.getMessage());
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("TokenException: " + e.getMessage());
     }
 
     /**
@@ -123,16 +85,11 @@ public class CommonAdvice {
      * @return 500 Internal Server Error 상태와 메시지를 포함한 응답
      */
     @ExceptionHandler(Throwable.class)
-    public ResponseEntity<String> exceptionHandler(Throwable e){
-        log.warn("Throwable 발생: {}", e.getMessage());
-
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+    public ResponseEntity<String> exceptionHandler(Throwable e) {
+        log.error("Throwable 발생: {}", e.getMessage(), e);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal Server Error 발생\n" + stackTrace);
+                .body("Internal Server Error 발생");
     }
 }

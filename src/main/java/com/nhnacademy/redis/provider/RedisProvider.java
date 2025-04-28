@@ -51,7 +51,7 @@ public class RedisProvider {
      * @return Redis 서버의 포트 번호
      * @throws InvalidRedisConfigException 포트가 설정되지 않았거나 숫자가 아닌 경우
      */
-    public int getRedisPort() {
+    public Integer getRedisPort() {
         String value = getProperty("REDIS_PORT", "redis.port");
         try {
             return Integer.parseInt(value);
@@ -65,7 +65,7 @@ public class RedisProvider {
      * Dotenv → Spring Environment → System.getenv 순으로 값을 찾습니다.
      *
      * @param dotenvKey .env 환경 변수 키
-     * @param envKey Spring 설정 키
+     * @param envKey    Spring 설정 키
      * @return 설정된 값
      * @throws InvalidRedisConfigException 값이 존재하지 않는 경우
      */
