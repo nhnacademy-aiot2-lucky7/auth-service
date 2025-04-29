@@ -3,10 +3,12 @@ package com.nhnacademy.auth.controller;
 import com.nhnacademy.auth.adapter.UserAdapter;
 import com.nhnacademy.auth.dto.UserSignInRequest;
 import com.nhnacademy.auth.dto.UserSignUpRequest;
-import com.nhnacademy.auth.service.AuthService;
+import com.nhnacademy.auth.service.auth.AuthService;
+import com.nhnacademy.auth.service.refresh_token.RefreshTokenService;
 import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.token.provider.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -22,8 +24,9 @@ import org.springframework.web.bind.annotation.*;
  * 액세스 토큰은 쿠키에 담아 클라이언트로 전송됩니다.
  * </p>
  */
+@Slf4j
 @RestController
-@RequestMapping(value = "/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -31,14 +34,16 @@ public class AuthController {
     private static final String STRICT = "Strict";
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
     private final JwtProvider jwtProvider;
     private final UserAdapter userAdapter;
 
     @PostMapping("/signUp")
     public ResponseEntity<Void> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
-        ResponseEntity<Void> responseEntity = userAdapter.createUser(userSignUpRequest);
+        ResponseEntity<String> responseEntity = userAdapter.createUser(userSignUpRequest);
 
         if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("response code: {}", responseEntity.getStatusCode().value());
             throw new FailSignUpException(responseEntity.getStatusCode().value());
         }
 
@@ -97,7 +102,7 @@ public class AuthController {
 
     @PostMapping("/reissue")
     public ResponseEntity<Void> reissueToken(@CookieValue(value = ACCESS_TOKEN) String accessToken) {
-        String newAccessToken = authService.reissueAccessToken(accessToken);
+        String newAccessToken = refreshTokenService.reissueAccessToken(accessToken);
 
         // 쿠키에 토큰 담기
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, newAccessToken)

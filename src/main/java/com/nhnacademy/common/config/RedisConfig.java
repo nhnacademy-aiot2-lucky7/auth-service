@@ -1,10 +1,12 @@
 package com.nhnacademy.common.config;
 
-import com.nhnacademy.redis.provider.RedisProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -24,40 +26,50 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableRedisRepositories
 @RequiredArgsConstructor
 public class RedisConfig {
+    @Value("${redis.host}")
+    private String host;
+    @Value("${redis.port}")
+    private int port;
+    @Value("${redis.password}")
+    private String password;
 
-    private final RedisProvider redisEnvProvider;
-
-    /**
-     * Redis 서버와의 연결을 위한 LettuceConnectionFactory 빈을 생성합니다.
-     * <p>
-     * Redis 서버의 호스트, 포트, 비밀번호 등의 정보를 RedisProvider를 통해 가져와 설정합니다.
-     * </p>
-     *
-     * @return LettuceConnectionFactory 객체
-     */
-    @Bean
-    public LettuceConnectionFactory redisConnectionFactory() {
+    @Primary
+    @Bean(name = "refreshTokenRedisConnectionFactory")
+    public LettuceConnectionFactory refreshTokenRedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(redisEnvProvider.getRedisHost());
-        config.setPort(redisEnvProvider.getRedisPort());
-        config.setPassword(RedisPassword.of(redisEnvProvider.getRedisPassword()));
+        config.setHostName(host);
+        config.setPort(port);
+        config.setPassword(RedisPassword.of(password));
         config.setDatabase(270);
         return new LettuceConnectionFactory(config);
     }
 
-    /**
-     * RedisTemplate 빈을 생성합니다.
-     * <p>
-     * RedisTemplate은 Redis와의 데이터 교환을 위한 템플릿으로, 키와 값에 대한 직렬화 방식으로 StringRedisSerializer를 사용합니다.
-     * </p>
-     *
-     * @param connectionFactory LettuceConnectionFactory 객체
-     * @return RedisTemplate<String, Object> 객체
-     */
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory connectionFactory) {
+    @Bean(name = "accessTokenBlacklistRedisConnectionFactory")
+    public LettuceConnectionFactory accessTokenBlacklistRedisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(host);
+        config.setPort(port);
+        config.setPassword(RedisPassword.of(password));
+        config.setDatabase(271);
+        return new LettuceConnectionFactory(config);
+    }
+
+    @Primary
+    @Bean(name = "refreshTokenRedisTemplate")
+    public RedisTemplate<String, Object> refreshTokenRedisTemplate(
+            @Qualifier("refreshTokenRedisConnectionFactory") LettuceConnectionFactory refreshTokenRedisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+        template.setConnectionFactory(refreshTokenRedisConnectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        return template;
+    }
+
+    @Bean(name = "accessTokenBlacklistRedisTemplate")
+    public RedisTemplate<String, Object> accessTokenBlacklistRedisTemplate(
+            @Qualifier("accessTokenBlacklistRedisConnectionFactory") LettuceConnectionFactory accessTokenBlacklistRedisConnectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(accessTokenBlacklistRedisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
         return template;

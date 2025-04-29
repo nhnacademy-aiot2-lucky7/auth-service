@@ -3,73 +3,53 @@ package com.nhnacademy.token.provider;
 import com.common.AESUtil;
 import com.nhnacademy.token.exception.FailCreateAccessTokenException;
 import com.nhnacademy.token.exception.FailCreateRefreshTokenException;
-import com.nhnacademy.token.exception.JwtSecretKeyMissingException;
 import com.nhnacademy.token.exception.TokenException;
-import io.github.cdimascio.dotenv.Dotenv;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtProvider {
-    private final Dotenv dotenv;
-    private final Environment env;
     private final AESUtil aesUtil;
+
+    @Value("${jwt.secret}")
+    private String jwtSecretKey;
 
     private JwtParser parser;
     private Key key;
 
-    private static final String JWT_SECRET_KEY = "JWT_SECRET";
     private static final String CLAIM_USER_ID = "user_id";
 
-    private static final long ACCESS_TOKEN_VALIDITY = 60 * 60 * 1000L;          // 1시간
-    private static final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000L; // 7일
-
-    public JwtProvider(Dotenv dotenv, Environment env, AESUtil aesUtil) {
-        this.dotenv = dotenv;
-        this.env = env;
-        this.aesUtil = aesUtil;
-    }
+    private static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);
+    private static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(7);
 
     @PostConstruct
     public void init() {
-        String jwtSecretKey = dotenv.get(JWT_SECRET_KEY);
-
         if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
-            jwtSecretKey = env.getProperty("jwt.secret");
+            throw new IllegalStateException("❌ jwt.secret 설정이 누락되었습니다. application.properties 또는 환경변수를 확인하세요.");
         }
-
-        if (jwtSecretKey == null || jwtSecretKey.isBlank()) {
-            throw new JwtSecretKeyMissingException();
+        if (jwtSecretKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("❌ jwt.secret 값이 너무 짧습니다. 최소 256비트(32바이트) 이상이어야 합니다.");
         }
-
-        key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
-        parser = Jwts.parserBuilder().setSigningKey(key).build();
+        this.key = Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
+        this.parser = Jwts.parserBuilder().setSigningKey(key).build();
     }
 
     public String createAccessToken(String userId) {
         try {
             String encryptedUserId = aesUtil.encrypt(userId);
-            Date now = new Date();
-            Date expiredAt = new Date(now.getTime() + ACCESS_TOKEN_VALIDITY);
-
-            return Jwts.builder()
-                    .claim(CLAIM_USER_ID, encryptedUserId)
-                    .setIssuedAt(now)
-                    .setExpiration(expiredAt)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
+            return createToken(ACCESS_TOKEN_DURATION, encryptedUserId);
         } catch (Exception e) {
             throw new FailCreateAccessTokenException();
         }
@@ -77,65 +57,65 @@ public class JwtProvider {
 
     public String createRefreshToken() {
         try {
-            Date now = new Date();
-            Date expiredAt = new Date(now.getTime() + REFRESH_TOKEN_VALIDITY);
-
-            return Jwts.builder()
-                    .setIssuedAt(now)
-                    .setExpiration(expiredAt)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
+            return createToken(REFRESH_TOKEN_DURATION, null);
         } catch (Exception e) {
             throw new FailCreateRefreshTokenException();
         }
     }
 
+    private String createToken(Duration duration, String encryptedUserId) {
+        Date now = new Date();
+        JwtBuilder builder = Jwts.builder()
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + duration.toMillis()))
+                .signWith(key, SignatureAlgorithm.HS256);
+
+        if (encryptedUserId != null) {
+            builder.claim(CLAIM_USER_ID, encryptedUserId);
+        }
+
+        return builder.compact();
+    }
+
     public String getUserIdFromToken(String token) {
         try {
             Claims claims = parser.parseClaimsJws(token).getBody();
-            String encryptedUserId = claims.get(CLAIM_USER_ID, String.class);
-            return aesUtil.decrypt(encryptedUserId);
+            return aesUtil.decrypt(claims.get(CLAIM_USER_ID, String.class));
         } catch (Exception e) {
             throw new TokenException("토큰에서 사용자 ID 복호화 중 예외 발생", e);
         }
     }
 
     public Long getExpiredAtFromToken(String token) {
-        try {
-            Date expiration = parser.parseClaimsJws(token).getBody().getExpiration();
-            return expiration.getTime();
-        } catch (Exception e) {
-            throw new TokenException("토큰에서 만료 시간 추출 중 예외 발생", e);
-        }
+        return extractClaims(token).getExpiration().getTime();
     }
 
     public Long getRemainingExpiration(String token) {
-        try {
-            Date expiration = parser.parseClaimsJws(token).getBody().getExpiration();
-            return expiration.getTime() - System.currentTimeMillis();
-        } catch (Exception e) {
-            throw new TokenException("토큰에서 남은 시간 계산 중 예외 발생", e);
-        }
+        return getExpiredAtFromToken(token) - System.currentTimeMillis();
     }
 
     public Long getRefreshTokenValidity() {
-        return REFRESH_TOKEN_VALIDITY;
+        return REFRESH_TOKEN_DURATION.toMillis();
     }
 
     /**
      * refresh token의 서명만 검증. 만료 여부는 무시한다.
-     *
-     * @param token JWT refresh token
-     * @return 서명이 유효하면 true, 아니면 false
      */
     public boolean validateRefreshToken(String token) {
         try {
-            parser.parseClaimsJws(token); // 서명만 검증됨. 만료돼도 SignatureException 아님.
+            parser.parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            // 만료, 형식 오류 등은 무시
             log.warn("Refresh token parsing failed: {}", e.getMessage());
             return false;
+        }
+    }
+
+    private Claims extractClaims(String token) {
+        try {
+            return parser.parseClaimsJws(token).getBody();
+        } catch (Exception e) {
+            throw new TokenException("토큰 파싱 중 예외 발생", e);
         }
     }
 }

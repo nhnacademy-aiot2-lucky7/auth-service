@@ -30,20 +30,7 @@ jobs:
           echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> $GITHUB_ENV
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
           echo "AES_SECRET=${{ secrets.AES_SECRET }}" >> $GITHUB_ENV
-#          echo "EUREKA_NAME=${{ secrets.EUREKA_NAME }}" >> $GITHUB_ENV
-#          echo "EUREKA_PASSWORD=${{ secrets.EUREKA_PASSWORD }}" >> $GITHUB_ENV
-
-      # 4. application.properties 파일 생성
-      - name: Generate application.properties
-        run: |
-          mkdir -p ./src/main/resources
-          echo "redis.host=$REDIS_HOST" > ./src/main/resources/application-release.properties
-          echo "redis.port=$REDIS_PORT" >> ./src/main/resources/application-release.properties
-          echo "redis.password=$REDIS_PASSWORD" >> ./src/main/resources/application-release.properties
-          echo "jwt.secret=$JWT_SECRET" >> ./src/main/resources/application-release.properties
-          echo "aes.secret=$AES_SECRET" >> ./src/main/resources/application-release.properties
-#          echo "spring.security.user.name=$EUREKA_NAME" >> ./src/main/resources/application-release.properties
-#          echo "spring.security.user.password=$EUREKA_PASSWORD" >> ./src/main/resources/application-release.properties
+          echo "SERVER_IP_ADDRESS=${{ secrets.SERVER_IP_ADDRESS }}" >> $GITHUB_ENV
 
       # 5. 테스트 생략하고 빌드
       - name: Package without tests
