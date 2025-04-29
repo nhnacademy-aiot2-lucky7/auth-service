@@ -32,6 +32,23 @@ jobs:
           echo "AES_SECRET=${{ secrets.AES_SECRET }}" >> $GITHUB_ENV
           echo "SERVER_IP_ADDRESS=${{ secrets.SERVER_IP_ADDRESS }}" >> $GITHUB_ENV
 
+      - name: Configure Maven for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+          <servers>
+          <server>
+          <id>github-packages</id>
+          <username>${{ secrets.COMMON_LIB_ACTOR }}</username>
+          <password>${{ secrets.COMMON_LIB_TOKEN }}</password>
+          </server>
+          </servers>
+          </settings>
+          EOF
+
       # 5. 테스트 생략하고 빌드
       - name: Package without tests
         run: mvn clean package -Dmaven.test.skip=true
