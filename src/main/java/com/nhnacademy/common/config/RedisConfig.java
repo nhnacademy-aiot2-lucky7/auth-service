@@ -15,10 +15,10 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * RedisConfig 클래스는 Spring Data Redis를 설정하는 클래스입니다.
+ * Redis 설정 클래스입니다.
  * <p>
- * Redis 연결 설정을 위한 LettuceConnectionFactory를 제공하며, RedisTemplate을 생성하여 Redis 서버와의 상호작용을 가능하게 합니다.
- * 이 클래스는 Redis 환경 설정을 로드하기 위해 RedisProvider를 사용합니다.
+ * 이 클래스는 RefreshToken, AccessToken 블랙리스트 용 Redis 인스턴스를 각각 설정하며,
+ * 서로 다른 DB index를 사용하여 독립적으로 분리된 Redis 공간을 제공합니다.
  * </p>
  */
 @Slf4j
@@ -26,52 +26,88 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableRedisRepositories
 @RequiredArgsConstructor
 public class RedisConfig {
+
     @Value("${redis.host}")
     private String host;
+
     @Value("${redis.port}")
     private int port;
+
     @Value("${redis.password}")
     private String password;
 
+    /**
+     * Redis 연결 설정 생성 유틸리티
+     *
+     * @param database Redis DB 인덱스 (예: 270 = refresh, 271 = blacklist)
+     * @return 구성된 RedisStandaloneConfiguration
+     */
+    private RedisStandaloneConfiguration redisConfig(int database) {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(host);
+        config.setPort(port);
+        config.setPassword(RedisPassword.of(password));
+        config.setDatabase(database);
+        return config;
+    }
+
+    /**
+     * RedisTemplate 생성 유틸리티
+     *
+     * @param factory LettuceConnectionFactory
+     * @return 설정된 RedisTemplate
+     */
+    private RedisTemplate<String, Object> createTemplate(LettuceConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        return template;
+    }
+
+    /**
+     * RefreshToken 용 Redis ConnectionFactory
+     *
+     * @return LettuceConnectionFactory (DB 270)
+     */
     @Primary
     @Bean(name = "refreshTokenRedisConnectionFactory")
     public LettuceConnectionFactory refreshTokenRedisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(host);
-        config.setPort(port);
-        config.setPassword(RedisPassword.of(password));
-        config.setDatabase(270);
-        return new LettuceConnectionFactory(config);
+        return new LettuceConnectionFactory(redisConfig(270));
     }
 
+    /**
+     * AccessToken 블랙리스트 용 Redis ConnectionFactory
+     *
+     * @return LettuceConnectionFactory (DB 271)
+     */
     @Bean(name = "accessTokenBlacklistRedisConnectionFactory")
     public LettuceConnectionFactory accessTokenBlacklistRedisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(host);
-        config.setPort(port);
-        config.setPassword(RedisPassword.of(password));
-        config.setDatabase(271);
-        return new LettuceConnectionFactory(config);
+        return new LettuceConnectionFactory(redisConfig(271));
     }
 
+    /**
+     * RefreshToken RedisTemplate Bean
+     *
+     * @param connectionFactory refresh token 용 Redis 연결 팩토리
+     * @return RedisTemplate
+     */
     @Primary
     @Bean(name = "refreshTokenRedisTemplate")
     public RedisTemplate<String, Object> refreshTokenRedisTemplate(
-            @Qualifier("refreshTokenRedisConnectionFactory") LettuceConnectionFactory refreshTokenRedisConnectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(refreshTokenRedisConnectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        return template;
+            @Qualifier("refreshTokenRedisConnectionFactory") LettuceConnectionFactory connectionFactory) {
+        return createTemplate(connectionFactory);
     }
 
+    /**
+     * AccessToken 블랙리스트 RedisTemplate Bean
+     *
+     * @param connectionFactory 블랙리스트용 Redis 연결 팩토리
+     * @return RedisTemplate
+     */
     @Bean(name = "accessTokenBlacklistRedisTemplate")
     public RedisTemplate<String, Object> accessTokenBlacklistRedisTemplate(
-            @Qualifier("accessTokenBlacklistRedisConnectionFactory") LettuceConnectionFactory accessTokenBlacklistRedisConnectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(accessTokenBlacklistRedisConnectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        return template;
+            @Qualifier("accessTokenBlacklistRedisConnectionFactory") LettuceConnectionFactory connectionFactory) {
+        return createTemplate(connectionFactory);
     }
 }

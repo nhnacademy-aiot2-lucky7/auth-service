@@ -31,6 +31,8 @@ jobs:
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
           echo "AES_SECRET=${{ secrets.AES_SECRET }}" >> $GITHUB_ENV
           echo "SERVER_IP_ADDRESS=${{ secrets.SERVER_IP_ADDRESS }}" >> $GITHUB_ENV
+          
+      
 
       - name: Configure Maven for GitHub Packages
         run: |

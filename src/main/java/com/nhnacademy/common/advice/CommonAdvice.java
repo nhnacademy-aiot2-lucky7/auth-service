@@ -1,45 +1,70 @@
 package com.nhnacademy.common.advice;
 
 import com.nhnacademy.common.exception.CommonHttpException;
-import com.nhnacademy.common.exception.FailSignInException;
-import com.nhnacademy.common.exception.FailSignUpException;
 import com.nhnacademy.token.exception.TokenException;
+import feign.FeignException;
+import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import org.springframework.validation.BindException; // spring의 BindException으로 수정
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
- * {@code @RestControllerAdvice}를 사용한 전역 예외 처리 클래스입니다.
- * REST 컨트롤러 전반에서 발생하는 다양한 예외를 공통적으로 처리하며,
- * 각 예외 유형에 따라 적절한 HTTP 상태 코드와 메시지를 반환합니다.
+ * 전역 예외를 처리하는 핸들러 클래스입니다.
+ * <p>
+ * Feign 오류, 바인딩 오류, 커스텀 예외 등을 통합 처리합니다.
  */
 @Slf4j
 @RestControllerAdvice
 public class CommonAdvice {
 
     /**
-     * {@link BindException} 발생 시 처리합니다.
-     * <p>
-     * 요청 파라미터 검증 과정에서 발생한 바인딩 예외를 처리하며,
-     * 필드별 에러 메시지를 포함한 상세한 응답을 제공합니다.
+     * FeignException 처리 핸들러
      *
-     * @param e 바인딩 예외 객체
-     * @return 400 Bad Request 상태와 상세 에러 메시지를 포함한 응답
+     * @param ex FeignException
+     * @return 502 또는 404 응답
+     */
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<String> handleFeignException(FeignException ex) {
+        log.error("Feign 호출 예외 발생: status={}, message={}", ex.status(), ex.getMessage(), ex);
+
+        if (ex.status() == 404) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("요청한 자원을 찾을 수 없습니다.");
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body("외부 서비스 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
+
+    /**
+     * Feign 연결 재시도 예외 처리
+     *
+     * @param ex RetryableException
+     * @return 503 응답
+     */
+    @ExceptionHandler(RetryableException.class)
+    public ResponseEntity<String> handleRetryableException(RetryableException ex) {
+        log.error("외부 서비스 연결 실패: {}", ex.getMessage(), ex);
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("일시적인 연결 문제입니다. 잠시 후 다시 시도해주세요.");
+    }
+
+    /**
+     * Request 바인딩 오류 처리
+     *
+     * @param e BindException
+     * @return 400 응답
      */
     @ExceptionHandler(BindException.class)
     public ResponseEntity<String> bindExceptionHandler(BindException e) {
-        log.warn("BindException 발생: {}", e.getMessage());
+        log.warn("요청 필드 바인딩 오류 발생: {}", e.getMessage());
 
-        StringBuilder errorMessage = new StringBuilder("Bad Request: ");
-
+        StringBuilder errorMessage = new StringBuilder("요청에 문제가 있습니다: ");
         for (FieldError fieldError : e.getFieldErrors()) {
             errorMessage.append(fieldError.getField())
                     .append(" - ")
@@ -53,43 +78,44 @@ public class CommonAdvice {
     }
 
     /**
-     * {@link CommonHttpException} 및 이를 상속하는 예외 처리.
-     * <p>
-     * 커스텀 HTTP 예외 발생 시 400 상태 코드와 메시지를 반환합니다.
+     * 사용자 정의 HTTP 예외 처리
      *
-     * @param e 공통 HTTP 예외 객체
-     * @return 400 Bad Request 상태와 예외 메시지를 포함한 응답
+     * @param e CommonHttpException
+     * @return 지정된 상태 코드와 메시지
      */
     @ExceptionHandler(CommonHttpException.class)
     public ResponseEntity<String> commonExceptionHandler(CommonHttpException e) {
         log.warn("CommonHttpException 발생: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getStatusCode())
-                .body("CommonException: " + e.getMessage());
+                .body(e.getMessage());
     }
 
+    /**
+     * JWT 등 인증 관련 예외 처리
+     *
+     * @param e TokenException
+     * @return 500 응답
+     */
     @ExceptionHandler(TokenException.class)
     public ResponseEntity<String> tokenExceptionHandler(TokenException e) {
         log.warn("TokenException 발생: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("TokenException: " + e.getMessage());
+                .body("인증 처리 중 오류가 발생했습니다.");
     }
 
     /**
-     * {@link Throwable}을 처리하는 최후의 예외 처리자입니다.
-     * <p>
-     * Exception으로도 처리되지 않는 {@code Error} 등의 모든 예외를 포괄합니다.
+     * 처리되지 않은 모든 예외 처리
      *
-     * @param e 발생한 Throwable
-     * @return 500 Internal Server Error 상태와 메시지를 포함한 응답
+     * @param e Throwable
+     * @return 500 응답
      */
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<String> exceptionHandler(Throwable e) {
-        log.error("Throwable 발생: {}", e.getMessage(), e);
-
+        log.error("Unhandled 예외 발생: {}", e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal Server Error 발생");
+                .body("내부 서버 오류가 발생했습니다.");
     }
 }
