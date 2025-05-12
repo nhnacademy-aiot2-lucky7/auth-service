@@ -1,79 +1,40 @@
-name: Build and Deploy
+name: CI - Build and Push Docker Image to GHCR
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write  # GHCR 푸시용 권한
+
+env:
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 코드 체크아웃
-      - uses: actions/checkout@v3
+      - name: Checkout source
+        uses: actions/checkout@v3
 
-      # 2. JDK 21 설정
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 3. REDIS, JWT, AES secrets를 환경 변수로 등록
-      - name: Set up secrets as env variables
+      - name: Build Docker image
         run: |
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GITHUB_ENV
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> $GITHUB_ENV
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
-          echo "AES_SECRET=${{ secrets.AES_SECRET }}" >> $GITHUB_ENV
-          echo "SERVER_IP_ADDRESS=${{ secrets.SERVER_IP_ADDRESS }}" >> $GITHUB_ENV
-          
-      
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          IMAGE_ID=$(echo "$IMAGE_ID" | tr '[:upper:]' '[:lower:]')
+          docker build \
+            --build-arg GITHUB_ACTOR=$GITHUB_ACTOR \
+            --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+            -t $IMAGE_ID \
+            -f Dockerfile .
 
-      - name: Configure Maven for GitHub Packages
+      - name: Push Docker image
         run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-          <servers>
-          <server>
-          <id>github-packages</id>
-          <username>${{ secrets.COMMON_LIB_ACTOR }}</username>
-          <password>${{ secrets.COMMON_LIB_TOKEN }}</password>
-          </server>
-          </servers>
-          </settings>
-          EOF
-
-      # 5. 테스트 생략하고 빌드
-      - name: Package without tests
-        run: mvn clean package -Dmaven.test.skip=true
-
-      # 6. SCP를 통해 서버로 jar 파일 전송
-      - name: Upload jar to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_IP }}
-          username: ${{ secrets.SSH_ID }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          source: "target/*.jar"
-          target: "~/"
-          rm: false
-
-      # 7. 원격 서버에서 스크립트 실행
-      - name: Execute startup script on remote server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_IP }}
-          username: ${{ secrets.SSH_ID }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script_stop: true
-          script: startup/authServiceStartup.sh
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          IMAGE_ID=$(echo "$IMAGE_ID" | tr '[:upper:]' '[:lower:]')
+          docker push $IMAGE_ID
