@@ -1,18 +1,21 @@
-# 빌더 이미지
 FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
-# GHCR 인증용 변수 선언
+# GHCR 인증용 빌드 아규먼트 (보안 경고 방지를 위해 ENV로는 안 씀)
 ARG GITHUB_ACTOR
 ARG GITHUB_TOKEN
-ENV GITHUB_ACTOR=$GITHUB_ACTOR
-ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
-# settings.xml 먼저 복사
+# settings.xml 복사
 COPY .m2/settings.xml /root/.m2/settings.xml
 
-# 프로젝트 복사
+# 소스 복사
 COPY . .
 
-RUN ./mvnw clean package -DskipTests
+# Maven 테스트 생략하고 빌드 (환경변수는 RUN에서 직접 주입)
+RUN GITHUB_ACTOR=${GITHUB_ACTOR} GITHUB_TOKEN=${GITHUB_TOKEN} ./mvnw clean install -Dmaven.test.skip=true
+
+# 런타임 이미지
+FROM eclipse-temurin:21-jdk
+COPY --from=builder /app/target/*.jar /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
