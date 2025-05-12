@@ -14,27 +14,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v3
-
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Build Docker image
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-          IMAGE_ID=$(echo "$IMAGE_ID" | tr '[:upper:]' '[:lower:]')
-          docker build \
-            --build-arg GITHUB_ACTOR=$GITHUB_ACTOR \
-            --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
-            -t $IMAGE_ID \
-            -f Dockerfile .
-
-      - name: Push Docker image
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-          IMAGE_ID=$(echo "$IMAGE_ID" | tr '[:upper:]' '[:lower:]')
-          docker push $IMAGE_ID
+    uses: github.com/nhnacademy-aiot2-lucky7/common-infra/blob/main/.github/workflows/resuable-docker-publish.yml@main
+    with:
+      image-name: auth-service
+      use-github-token: true  # 필요하면 true, 아니면 생략 or false
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
