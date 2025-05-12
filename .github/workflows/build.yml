@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    uses: github.com/nhnacademy-aiot2-lucky7/common-infra/blob/main/.github/workflows/resuable-docker-publish.yml@main
+    uses: nhnacademy-aiot2-lucky7/common-infra/blob/main/.github/workflows/resuable-docker-publish.yml@main
     with:
       image-name: auth-service
       use-github-token: true  # 필요하면 true, 아니면 생략 or false
