@@ -64,6 +64,18 @@ public class AuthServiceImpl implements AuthService {
         throw new FailSignInException(statusCode);
     }
 
+    @Override
+    public String socialSignIn(String userEmail) {
+            String refreshToken = jwtProvider.createRefreshToken();
+            refreshTokenService.setRefreshToken(refreshToken, userEmail);
+            log.debug("[AuthService] RefreshToken 저장 - userId={}, token={}", userEmail, refreshToken);
+
+            String accessToken = jwtProvider.createAccessToken(userEmail);
+            log.debug("[AuthService] AccessToken 생성 - userId={}, token={}", userEmail, accessToken);
+
+            return accessToken;
+    }
+
     /**
      * 사용자 로그아웃을 처리합니다.
      * <p>

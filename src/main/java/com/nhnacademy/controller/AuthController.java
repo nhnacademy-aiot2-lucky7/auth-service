@@ -1,6 +1,10 @@
 package com.nhnacademy.controller;
 
+import com.nhnacademy.adapter.GoogleUserInfoClient;
 import com.nhnacademy.adapter.UserAdapter;
+import com.nhnacademy.common.exception.UnauthorizedException;
+import com.nhnacademy.dto.GoogleUserInfoResponse;
+import com.nhnacademy.dto.SocialUserRegisterRequest;
 import com.nhnacademy.dto.UserSignInRequest;
 import com.nhnacademy.dto.UserSignUpRequest;
 import com.nhnacademy.service.auth.AuthService;
@@ -41,6 +45,7 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final JwtProvider jwtProvider;
     private final UserAdapter userAdapter;
+    private final GoogleUserInfoClient googleUserInfoClient;
 
     /**
      * 사용자 회원가입 요청을 처리합니다. 회원가입 성공 시 자동 로그인 처리도 수행됩니다.
@@ -62,6 +67,70 @@ public class AuthController {
         log.info("[AuthController] 회원가입 성공 - email={}", userSignUpRequest.getUserEmail());
 
         return signIn(new UserSignInRequest(userSignUpRequest.getUserEmail(), userSignUpRequest.getUserPassword()));
+    }
+
+    @PostMapping("/social/signUp")
+    public ResponseEntity<Void> socialSignUp(
+            @RequestBody @Validated SocialUserRegisterRequest socialUserRegisterRequest,
+            @RequestHeader("Authorization") String accessTokenHeader) {
+
+
+
+        try {
+            GoogleUserInfoResponse userInfo = googleUserInfoClient.getUserInfo(accessTokenHeader);
+
+            if(!socialUserRegisterRequest.getUserEmail().equals(userInfo.getEmail())) {
+                throw new RuntimeException();
+            }
+        } catch(Exception e) {
+            throw new FailSignUpException(HttpStatus.BAD_REQUEST.value(), "회원가입 실패");
+        }
+
+        // 3. 회원가입 처리
+        userAdapter.socialSignUp(socialUserRegisterRequest);
+
+        String accessToken = authService.socialSignIn(socialUserRegisterRequest.getUserEmail());
+        long ttl = jwtProvider.getRemainingExpiration(accessToken);
+
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(ttl)
+                .sameSite(STRICT)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
+
+    @PostMapping("/social/signIn")
+    public ResponseEntity<Void> socialSignIn(@RequestBody String email, @RequestHeader("Authorization") String accessTokenHeader) {
+        try {
+            GoogleUserInfoResponse userInfo = googleUserInfoClient.getUserInfo(accessTokenHeader);
+
+            if(!email.equals(userInfo.getEmail())) {
+                throw new RuntimeException();
+            }
+        } catch(Exception e) {
+            throw new FailSignUpException(HttpStatus.BAD_REQUEST.value(), "로그인 실패");
+        }
+
+        String accessToken = authService.socialSignIn(email);
+        long ttl = jwtProvider.getRemainingExpiration(accessToken);
+
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(ttl)
+                .sameSite(STRICT)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
     }
 
     /**
