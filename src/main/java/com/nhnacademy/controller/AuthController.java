@@ -1,5 +1,6 @@
 package com.nhnacademy.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.adapter.GoogleUserInfoClient;
 import com.nhnacademy.adapter.UserAdapter;
 import com.nhnacademy.common.exception.UnauthorizedException;
@@ -106,18 +107,18 @@ public class AuthController {
     }
 
     @PostMapping("/social/signIn")
-    public ResponseEntity<Void> socialSignIn(@RequestBody String email, @RequestHeader("Authorization") String accessTokenHeader) {
+    public ResponseEntity<Void> socialSignIn(@RequestBody String userEmail, @RequestHeader("Authorization") String accessTokenHeader) {
         try {
             GoogleUserInfoResponse userInfo = googleUserInfoClient.getUserInfo(accessTokenHeader);
 
-            if(!email.equals(userInfo.getEmail())) {
+            if(!userEmail.equals(userInfo.getEmail())) {
                 throw new RuntimeException();
             }
         } catch(Exception e) {
             throw new FailSignUpException(HttpStatus.BAD_REQUEST.value(), "로그인 실패");
         }
 
-        String accessToken = authService.socialSignIn(email);
+        String accessToken = authService.socialSignIn(userEmail);
         long ttl = jwtProvider.getRemainingExpiration(accessToken);
 
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
