@@ -1,9 +1,11 @@
 package com.nhnacademy.adapter;
 
+import com.nhnacademy.dto.SocialUserRegisterRequest;
 import com.nhnacademy.dto.UserSignInRequest;
 import com.nhnacademy.dto.UserSignUpRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -32,4 +34,7 @@ public interface UserAdapter {
      */
     @PostMapping("/auth/signIn")
     ResponseEntity<String> loginUser(@RequestBody UserSignInRequest userSignInRequest);
+
+    @PostMapping("/auth/social/signUp")
+    ResponseEntity<Void> socialSignUp(@RequestBody SocialUserRegisterRequest socialUserRegisterRequest);
 }

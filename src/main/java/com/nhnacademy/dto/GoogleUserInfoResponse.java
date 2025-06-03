@@ -1,0 +1,14 @@
+package com.nhnacademy.dto;
+
+import lombok.Data;
+
+@Data
+public class GoogleUserInfoResponse {
+    private String sub;
+    private String name;
+    private String givenName;
+    private String familyName;
+    private String picture;
+    private String email;
+    private Boolean emailVerified;
+}
