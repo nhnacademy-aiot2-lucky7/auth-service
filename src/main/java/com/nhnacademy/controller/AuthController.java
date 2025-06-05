@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private static final String ACCESS_TOKEN = "accessToken";
-    private static final String STRICT = "Strict";
 
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
@@ -98,7 +97,6 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(ttl)
-                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity.ok()
@@ -126,7 +124,6 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(ttl)
-                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity.ok()
@@ -154,7 +151,6 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(ttl)
-                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity.ok()
@@ -184,7 +180,6 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(0)
-                .sameSite(STRICT)
                 .build();
 
         log.info("[AuthController] 로그아웃 처리 완료 - accessToken 블랙리스트 등록 및 쿠키 제거");
@@ -219,7 +214,6 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(ttl)
-                .sameSite(STRICT)
                 .build();
 
         return ResponseEntity.ok()
