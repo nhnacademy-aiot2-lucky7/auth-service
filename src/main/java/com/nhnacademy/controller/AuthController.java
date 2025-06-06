@@ -54,7 +54,7 @@ public class AuthController {
      * @throws FailSignUpException 회원가입 실패 시
      */
     @PostMapping("/signUp")
-    public ResponseEntity<Void> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
+    public ResponseEntity<String> signUp(@RequestBody @Validated UserSignUpRequest userSignUpRequest) {
         log.info("[AuthController] 회원가입 요청 - email={}", userSignUpRequest.getUserEmail());
 
         ResponseEntity<String> response = userAdapter.createUser(userSignUpRequest);
@@ -69,11 +69,9 @@ public class AuthController {
     }
 
     @PostMapping("/social/signUp")
-    public ResponseEntity<Void> socialSignUp(
+    public ResponseEntity<String> socialSignUp(
             @RequestBody @Validated SocialUserRegisterRequest socialUserRegisterRequest,
             @RequestHeader("Authorization") String accessTokenHeader) {
-
-
 
         try {
             GoogleUserInfoResponse userInfo = googleUserInfoClient.getUserInfo(accessTokenHeader);
@@ -89,23 +87,12 @@ public class AuthController {
         userAdapter.socialSignUp(socialUserRegisterRequest);
 
         String accessToken = authService.socialSignIn(socialUserRegisterRequest.getUserEmail());
-        long ttl = jwtProvider.getRemainingExpiration(accessToken);
 
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(ttl)
-                .sameSite(SAME_SITE)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return ResponseEntity.ok(accessToken);
     }
 
     @PostMapping("/social/signIn")
-    public ResponseEntity<Void> socialSignIn(@RequestBody String userEmail, @RequestHeader("Authorization") String accessTokenHeader) {
+    public ResponseEntity<String> socialSignIn(@RequestBody String userEmail, @RequestHeader("Authorization") String accessTokenHeader) {
         try {
             GoogleUserInfoResponse userInfo = googleUserInfoClient.getUserInfo(accessTokenHeader);
 
@@ -117,19 +104,8 @@ public class AuthController {
         }
 
         String accessToken = authService.socialSignIn(userEmail);
-        long ttl = jwtProvider.getRemainingExpiration(accessToken);
 
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(ttl)
-                .sameSite(SAME_SITE)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return ResponseEntity.ok(accessToken);
     }
 
     /**
@@ -139,7 +115,7 @@ public class AuthController {
      * @return accessToken을 담은 httpOnly 쿠키
      */
     @PostMapping("/signIn")
-    public ResponseEntity<Void> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest) {
+    public ResponseEntity<String> signIn(@RequestBody @Validated UserSignInRequest userSignInRequest) {
         log.info("[AuthController] 로그인 요청 - email={}", userSignInRequest.getUserEmail());
 
         String accessToken = authService.signIn(userSignInRequest);
@@ -147,17 +123,7 @@ public class AuthController {
 
         log.info("[AuthController] 로그인 성공 - email={}, TTL(ms)={}", userSignInRequest.getUserEmail(), ttl);
 
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(ttl)
-                .sameSite(SAME_SITE)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return ResponseEntity.ok(accessToken);
     }
 
     /**
@@ -199,7 +165,7 @@ public class AuthController {
      * @return 새 access token을 담은 httpOnly 쿠키
      */
     @PostMapping("/reissue")
-    public ResponseEntity<Void> reissueToken(@CookieValue(value = ACCESS_TOKEN, required = false) String accessToken) {
+    public ResponseEntity<String> reissueToken(@CookieValue(value = ACCESS_TOKEN, required = false) String accessToken) {
         if (accessToken == null || accessToken.isBlank()) {
             log.warn("[AuthController] AccessToken 재발급 실패 - 쿠키 없음");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -212,16 +178,6 @@ public class AuthController {
 
         log.info("[AuthController] AccessToken 재발급 성공 - TTL(ms)={}", ttl);
 
-        ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN, newAccessToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(ttl)
-                .sameSite(SAME_SITE)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return ResponseEntity.ok(newAccessToken);
     }
 }
