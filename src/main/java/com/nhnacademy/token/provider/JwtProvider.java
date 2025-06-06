@@ -35,7 +35,7 @@ public class JwtProvider {
     private Key key;
 
     private static final String CLAIM_USER_ID = "user_id";
-    private static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);
+    private static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(3);
     private static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(7);
 
     /**
